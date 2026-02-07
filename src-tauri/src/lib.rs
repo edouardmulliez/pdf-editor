@@ -1,3 +1,9 @@
+// PDF operations module
+pub mod pdf_ops;
+
+// PDF validation module
+pub mod pdf_validation;
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
