@@ -45,29 +45,111 @@ npm run tauri build
 
 ```
 pdf-editor/
-├── src/                    # React frontend
-│   ├── components/        # UI components
-│   │   ├── PDFViewer/    # PDF rendering
-│   │   ├── Toolbar/      # Tool selection & formatting
-│   │   ├── Sidebar/      # Page navigation
+├── src/                     # React frontend
+│   ├── components/         # UI components
+│   │   ├── PDFViewer/     # PDF rendering
+│   │   ├── Toolbar/       # Tool selection & formatting
+│   │   ├── Sidebar/       # Page navigation
 │   │   ├── AnnotationLayer/ # Annotation rendering
-│   │   └── UI/           # Header, StatusBar
-│   ├── stores/           # Zustand state management
-│   ├── types/            # TypeScript types
-│   └── utils/            # Helper functions
-├── src-tauri/            # Rust backend
-└── SPEC.md               # Full specification
+│   │   └── UI/            # Header, StatusBar
+│   ├── stores/            # Zustand state management
+│   ├── types/             # TypeScript types
+│   └── utils/             # Helper functions
+├── src-tauri/             # Rust backend
+│   ├── src/
+│   │   ├── pdf_ops.rs     # PDF operations (create, add text, extract)
+│   │   └── pdf_validation.rs # PDF validation system
+│   ├── tests/             # Integration tests
+│   └── examples/          # Example programs
+├── docs/                  # Documentation
+│   ├── SPEC.md           # Product specification
+│   ├── IMPLEMENTATION_PLAN.md # Implementation guide
+│   ├── PHASE0_COMPLETE.md # Phase 0 report
+│   └── PDF_VALIDATION.md  # Validation system docs
+└── README.md              # This file
 ```
 
 ## Development Status
 
-🚧 **In Development** - Basic project structure is set up. Next steps:
-- Implement PDF.js integration for rendering
-- Implement Tauri commands for file operations
-- Implement annotation editing (drag, resize)
-- Implement PDF export with pdf-lib
+✅ **Phase 0 Complete** - Core Rust PDF capabilities validated!
+- ✅ PDF creation with text
+- ✅ Adding text to existing PDFs
+- ✅ Text extraction and verification
+- ✅ PDF validation system (catches compatibility issues)
+- ✅ 18/18 tests passing
 
-See [SPEC.md](./SPEC.md) for the complete specification.
+**Next Steps**: Phase 1 - PDF Rendering with PDF.js
+
+## Testing
+
+### Run All Tests
+
+```bash
+# Run all tests (unit + integration)
+cd src-tauri
+cargo test
+
+# Run with output
+cargo test -- --nocapture
+
+# Run specific test file
+cargo test --test pdf_integration_test
+cargo test --test pdf_validation_test
+
+# Run specific test
+cargo test test_end_to_end_pdf_editing -- --nocapture
+```
+
+### Test Categories
+
+**Unit Tests** (6 tests in `src/`):
+```bash
+cargo test --lib
+```
+
+**Integration Tests** (12 tests in `tests/`):
+```bash
+cargo test --test pdf_integration_test    # 4 tests - E2E workflow
+cargo test --test pdf_validation_test     # 8 tests - PDF validation
+```
+
+### Generate Test PDFs
+
+```bash
+# Generate example PDFs for manual inspection
+cargo run --example generate_test_pdfs
+```
+
+This creates 6 example PDFs in `src-tauri/` demonstrating:
+- Simple text
+- Added text (original vs modified)
+- Multiple font sizes
+- Different positions
+- Multiple lines with special characters
+
+## Documentation
+
+📚 **Complete documentation in [`docs/`](./docs/)**:
+
+- **[SPEC.md](./docs/SPEC.md)** - Complete product specification
+  - Features, UI/UX, technical stack
+  - Development phases and timeline
+  - Success metrics
+
+- **[IMPLEMENTATION_PLAN.md](./docs/IMPLEMENTATION_PLAN.md)** - Detailed implementation guide
+  - 5 phases with 31 specific tasks
+  - Technical notes and code examples
+  - Risk assessment and mitigation
+
+- **[PHASE0_COMPLETE.md](./docs/PHASE0_COMPLETE.md)** - Phase 0 completion report
+  - Rust PDF capabilities validation
+  - All test results and learnings
+  - Known limitations
+
+- **[PDF_VALIDATION.md](./docs/PDF_VALIDATION.md)** - PDF validation system
+  - API reference and usage examples
+  - How it caught Safari/Preview bug
+  - 8 validation tests explained
 
 ## Recommended IDE Setup
 
