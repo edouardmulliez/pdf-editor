@@ -173,11 +173,11 @@ export const PDFViewer: React.FC = () => {
   return (
     <div ref={containerRef} className="flex-1 flex flex-col bg-gray-100">
       <div ref={pagesContainerRef} className="flex-1 overflow-auto p-8">
-        <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex flex-col items-center space-y-6">
           {renderedPages.map((page) => (
             <div
               key={page.pageNumber}
-              className="bg-white shadow-lg rounded-lg overflow-hidden"
+              className="bg-white shadow-lg inline-block"
               data-page-number={page.pageNumber}
             >
               <div
@@ -186,7 +186,6 @@ export const PDFViewer: React.FC = () => {
                     el.appendChild(page.canvas);
                   }
                 }}
-                className="w-full"
               />
             </div>
           ))}

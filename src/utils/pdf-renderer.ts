@@ -31,6 +31,7 @@ export async function renderPageToCanvas(
   // Set CSS dimensions to actual display size
   canvas.style.width = `${viewport.width}px`;
   canvas.style.height = `${viewport.height}px`;
+  canvas.style.display = 'block';
 
   // Scale the context to match device pixel ratio
   canvasContext.setTransform(outputScale, 0, 0, outputScale, 0, 0);
@@ -69,5 +70,6 @@ export function calculateFitScale(
   const scaleY = availableHeight / pageHeight;
 
   // Use the smaller scale to ensure the page fits in both dimensions
-  return Math.min(scaleX, scaleY);
+  // But never scale up beyond 1.0 (natural size)
+  return Math.min(scaleX, scaleY, 1.0);
 }
