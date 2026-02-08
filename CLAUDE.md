@@ -208,3 +208,49 @@ When creating new documentation:
 - Technical specifications → `docs/`
 - Phase completion reports → `docs/`
 - API documentation → `docs/`
+
+## Development Workflow
+
+### After Completing Changes
+
+**Always run tests after making changes:**
+```bash
+cd src-tauri
+cargo test
+```
+
+All 37 tests must pass before considering work complete. If tests fail, fix the issues before proceeding.
+
+### Update Implementation Plan
+
+**After completing a task or feature, update `docs/IMPLEMENTATION_PLAN.md`:**
+- Mark completed tasks with ✅
+- Update phase status if phase is complete
+- Add any new tasks discovered during implementation
+- Update timeline estimates if needed
+
+Example:
+```markdown
+## Phase 1: PDF Rendering ✅ COMPLETE
+- ✅ PDF.js Integration
+- ✅ Canvas Rendering
+- ✅ Multi-Page Scrolling
+```
+
+### Test-Driven Development
+
+When adding new features:
+1. Write tests first (or alongside implementation)
+2. Implement the feature
+3. Run `cargo test` to verify
+4. Update documentation
+5. Commit changes
+
+### Verification Checklist
+
+Before marking work as complete:
+- [ ] All tests pass (`cargo test`)
+- [ ] Manual testing completed (for UI changes)
+- [ ] `docs/IMPLEMENTATION_PLAN.md` updated
+- [ ] Related documentation updated if needed
+- [ ] No compiler warnings introduced
