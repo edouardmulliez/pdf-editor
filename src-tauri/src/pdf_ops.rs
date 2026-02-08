@@ -435,11 +435,54 @@ fn create_png_xobject(
     let width = img.width();
     let height = img.height();
 
-    // Convert to RGB8
+    // Check if image has alpha channel
+    let has_alpha = match img.color() {
+        ::image::ColorType::Rgba8 | ::image::ColorType::La8 |
+        ::image::ColorType::Rgba16 | ::image::ColorType::La16 |
+        ::image::ColorType::Rgba32F => true,
+        _ => false,
+    };
+
+    // Create SMask (alpha channel) if image has transparency
+    let smask_id = if has_alpha {
+        // Extract alpha channel
+        let rgba_img = img.to_rgba8();
+        let rgba_data = rgba_img.as_raw();
+
+        // Extract alpha channel (every 4th byte starting from index 3)
+        let alpha_data: Vec<u8> = rgba_data.iter()
+            .skip(3)
+            .step_by(4)
+            .copied()
+            .collect();
+
+        // Compress alpha data
+        let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
+        encoder.write_all(&alpha_data)?;
+        let compressed_alpha = encoder.finish()?;
+
+        // Create SMask XObject dictionary (grayscale image for alpha)
+        let mut smask_dict = Dictionary::new();
+        smask_dict.set("Type", Object::Name(b"XObject".to_vec()));
+        smask_dict.set("Subtype", Object::Name(b"Image".to_vec()));
+        smask_dict.set("Width", Object::Integer(width as i64));
+        smask_dict.set("Height", Object::Integer(height as i64));
+        smask_dict.set("ColorSpace", Object::Name(b"DeviceGray".to_vec()));
+        smask_dict.set("BitsPerComponent", Object::Integer(8));
+        smask_dict.set("Filter", Object::Name(b"FlateDecode".to_vec()));
+
+        // Create SMask stream
+        let smask_stream = Stream::new(smask_dict, compressed_alpha);
+        Some(doc.add_object(smask_stream))
+    } else {
+        None
+    };
+
+    // Convert to RGB (without alpha)
     let rgb_img = img.to_rgb8();
     let raw_data = rgb_img.into_raw();
 
-    // Compress with zlib
+    // Compress RGB data with zlib
     let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
     encoder.write_all(&raw_data)?;
     let compressed_data = encoder.finish()?;
@@ -453,6 +496,11 @@ fn create_png_xobject(
     xobject_dict.set("ColorSpace", Object::Name(b"DeviceRGB".to_vec()));
     xobject_dict.set("BitsPerComponent", Object::Integer(8));
     xobject_dict.set("Filter", Object::Name(b"FlateDecode".to_vec()));
+
+    // Add SMask reference if transparency exists
+    if let Some(smask_id) = smask_id {
+        xobject_dict.set("SMask", Object::Reference(smask_id));
+    }
 
     // Create stream with compressed RGB data
     let stream = Stream::new(xobject_dict, compressed_data);
@@ -1543,7 +1591,7 @@ mod tests {
             .expect("Failed to create initial PDF");
 
         // Load JPEG image
-        let jpeg_data = std::fs::read("examples/fox.jpg")
+        let jpeg_data = std::fs::read("examples/input/fox.jpg")
             .expect("Failed to read fox.jpg");
 
         // Add JPEG to PDF
@@ -1614,7 +1662,7 @@ mod tests {
         let mut doc = Document::load(initial_pdf).expect("Failed to load PDF");
 
         // Add JPEG
-        let jpeg_data = std::fs::read("examples/fox.jpg")
+        let jpeg_data = std::fs::read("examples/input/fox.jpg")
             .expect("Failed to read fox.jpg");
         add_image_to_pdf(
             &mut doc,
@@ -1738,7 +1786,7 @@ mod tests {
             .expect("Failed to create initial PDF");
 
         // Load JPEG
-        let jpeg_data = std::fs::read("examples/fox.jpg")
+        let jpeg_data = std::fs::read("examples/input/fox.jpg")
             .expect("Failed to read fox.jpg");
 
         // Create PNG
