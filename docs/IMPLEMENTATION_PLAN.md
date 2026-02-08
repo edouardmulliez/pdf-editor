@@ -2,10 +2,11 @@
 
 ## Overview
 
-**Project Status**: ✅ Phase 1 Complete - PDF Rendering & File Operations
-**Current Phase**: Ready for Phase 2 - Annotation System Frontend
-**Phase 0 Completion**: 2026-02-08 - See PHASE0_COMPLETE.md
+**Project Status**: ✅ Phase 2 Complete - Annotation System Frontend
+**Current Phase**: Ready for Phase 3 - Annotation Editing
+**Phase 0 Completion**: 2026-02-08 - See docs/PHASE0_COMPLETE.md
 **Phase 1 Completion**: 2026-02-08 - Full PDF viewing capability
+**Phase 2 Completion**: 2026-02-08 - See docs/PHASE2_COMPLETE.md
 
 ---
 
@@ -166,29 +167,69 @@ Users can now:
 
 ---
 
-## Phase 2: Annotation System Frontend
+## Phase 2: Annotation System Frontend ✅ COMPLETE
 **Goal**: UI for adding text and image annotations
+**Completed**: 2026-02-08
+**Status**: ✅ Complete - See docs/PHASE2_COMPLETE.md
 
-### Tasks
+### Completed Features
 
-1. **Text Annotation Placement**
-   - Click to add text
-   - Apply formatting from toolbar
-   - Convert canvas ↔ PDF coordinates
+1. ✅ **Coordinate Conversion System**
+   - Created coordinate-converter.ts utility
+   - Canvas coordinates (top-left, pixels) ↔ PDF coordinates (bottom-left, points)
+   - Page metadata tracking (scale, viewport dimensions)
+   - Accurate positioning with no offsets
 
-2. **Image Annotation Placement**
-   - Image file dialog
-   - Position image on click
+2. ✅ **Text Annotation Placement**
+   - Click to add text with inline editing
+   - Real-time formatting from toolbar applied
+   - Enter to confirm, Escape to cancel
+   - Empty annotations automatically removed
+   - Text tool stays active for multiple placements
 
-3. **Annotation Rendering Layer**
-   - Overlay annotations on canvas
-   - Handle scaling with zoom
-   - Render per-page annotations
+3. ✅ **Image Annotation Placement**
+   - File dialog for JPEG/PNG selection
+   - Base64 encoding for storage
+   - Position at click location
+   - Automatic aspect ratio preservation
+   - 150pt default width with proportional height
 
-4. **Toolbar Active States**
+4. ✅ **Per-Page AnnotationLayer**
+   - AnnotationLayer component accepts pageNumber and pageMetadata
+   - Renders annotations with coordinate conversion
+   - Positioned absolutely over each page canvas
+   - Inline text editing support
+
+5. ✅ **Toolbar Enhancements**
+   - Disabled state when no PDF loaded
    - Visual feedback for active tool
-   - Disable when no PDF loaded
-   - Tool-specific cursors
+   - Crosshair cursor for annotation tools
+   - Text formatting controls visible with text tool
+
+6. ✅ **Utilities Created**
+   - `src/utils/coordinate-converter.ts` - Core coordinate math
+   - `src/utils/id-generator.ts` - Unique ID generation
+   - `src/utils/image-loader.ts` - Image file dialog and loading
+
+### Technical Implementation
+
+**Store Updates:**
+- `usePDFStore` - Added pageMetadata storage and getters
+- `useUIStore` - Added editingAnnotationId state
+
+**Component Updates:**
+- `PDFViewer` - Click handlers, metadata storage, AnnotationLayer integration
+- `AnnotationLayer` - Coordinate conversion, inline editing, per-page rendering
+- `Toolbar` - Disabled state management
+
+### User Experience
+Users can now:
+- Select text/image tools from toolbar
+- Click to place text annotations with inline editing
+- Click to place image annotations from file system
+- See annotations positioned correctly on pages
+- Use Enter/Escape for text editing workflow
+- Experience disabled toolbar when no PDF loaded
 
 ---
 

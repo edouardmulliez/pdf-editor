@@ -1,5 +1,6 @@
 import React from 'react';
 import { useUIStore } from '../../stores/useUIStore';
+import { usePDFStore } from '../../stores/usePDFStore';
 import { Tool } from '../../types';
 
 const FONT_FAMILIES = ['Arial', 'Times New Roman', 'Courier New', 'Helvetica', 'Georgia'];
@@ -18,10 +19,12 @@ export const Toolbar: React.FC = () => {
     setSelectedFontColor,
     toggleFontStyle,
   } = useUIStore();
+  const pdfDoc = usePDFStore((state) => state.document);
 
   const isTextTool = activeTool === 'text';
 
   const handleToolClick = (tool: Tool) => {
+    if (!pdfDoc) return;
     setActiveTool(activeTool === tool ? null : tool);
   };
 
@@ -31,8 +34,10 @@ export const Toolbar: React.FC = () => {
       <div className="flex items-center space-x-2 mb-2">
         <button
           onClick={() => handleToolClick('select')}
-          className={`p-2 rounded hover:bg-gray-100 transition-colors ${
-            activeTool === 'select' ? 'bg-primary-100 text-primary-700' : 'text-gray-700'
+          disabled={!pdfDoc}
+          className={`p-2 rounded transition-colors ${
+            !pdfDoc ? 'opacity-50 cursor-not-allowed text-gray-400' :
+            activeTool === 'select' ? 'bg-primary-100 text-primary-700' : 'text-gray-700 hover:bg-gray-100'
           }`}
           title="Select Tool"
         >
@@ -43,8 +48,10 @@ export const Toolbar: React.FC = () => {
 
         <button
           onClick={() => handleToolClick('text')}
-          className={`p-2 rounded hover:bg-gray-100 transition-colors ${
-            activeTool === 'text' ? 'bg-primary-100 text-primary-700' : 'text-gray-700'
+          disabled={!pdfDoc}
+          className={`p-2 rounded transition-colors ${
+            !pdfDoc ? 'opacity-50 cursor-not-allowed text-gray-400' :
+            activeTool === 'text' ? 'bg-primary-100 text-primary-700' : 'text-gray-700 hover:bg-gray-100'
           }`}
           title="Text Tool"
         >
@@ -55,8 +62,10 @@ export const Toolbar: React.FC = () => {
 
         <button
           onClick={() => handleToolClick('image')}
-          className={`p-2 rounded hover:bg-gray-100 transition-colors ${
-            activeTool === 'image' ? 'bg-primary-100 text-primary-700' : 'text-gray-700'
+          disabled={!pdfDoc}
+          className={`p-2 rounded transition-colors ${
+            !pdfDoc ? 'opacity-50 cursor-not-allowed text-gray-400' :
+            activeTool === 'image' ? 'bg-primary-100 text-primary-700' : 'text-gray-700 hover:bg-gray-100'
           }`}
           title="Image Tool"
         >
@@ -68,7 +77,10 @@ export const Toolbar: React.FC = () => {
         <div className="h-6 w-px bg-gray-300 mx-2" />
 
         <button
-          className="p-2 rounded hover:bg-gray-100 transition-colors text-gray-700"
+          disabled={!pdfDoc}
+          className={`p-2 rounded transition-colors ${
+            !pdfDoc ? 'opacity-50 cursor-not-allowed text-gray-400' : 'text-gray-700 hover:bg-gray-100'
+          }`}
           title="Delete Selected"
         >
           <svg className="w-5 h-5" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">

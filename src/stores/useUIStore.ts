@@ -5,6 +5,7 @@ interface UIState {
   activeTool: Tool;
   sidebarVisible: boolean;
   zoomLevel: number;
+  editingAnnotationId: string | null;
 
   // Text formatting state
   selectedFontFamily: string;
@@ -17,6 +18,7 @@ interface UIState {
   setSidebarVisible: (visible: boolean) => void;
   toggleSidebar: () => void;
   setZoomLevel: (zoom: number) => void;
+  setEditingAnnotationId: (id: string | null) => void;
   setSelectedFontFamily: (family: string) => void;
   setSelectedFontSize: (size: number) => void;
   setSelectedFontColor: (color: string) => void;
@@ -27,6 +29,7 @@ export const useUIStore = create<UIState>((set) => ({
   activeTool: null,
   sidebarVisible: true,
   zoomLevel: 100,
+  editingAnnotationId: null,
 
   // Default text formatting
   selectedFontFamily: 'Arial',
@@ -41,6 +44,8 @@ export const useUIStore = create<UIState>((set) => ({
   toggleSidebar: () => set((state) => ({ sidebarVisible: !state.sidebarVisible })),
 
   setZoomLevel: (zoom) => set({ zoomLevel: Math.max(25, Math.min(zoom, 300)) }),
+
+  setEditingAnnotationId: (id) => set({ editingAnnotationId: id }),
 
   setSelectedFontFamily: (family) => set({ selectedFontFamily: family }),
 

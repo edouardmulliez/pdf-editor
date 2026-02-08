@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
+import type { PageMetadata } from '../utils/coordinate-converter';
 
 interface PDFState {
   document: PDFDocumentProxy | null;
@@ -9,6 +10,7 @@ interface PDFState {
   totalPages: number;
   isLoading: boolean;
   error: string | null;
+  pageMetadata: Map<number, PageMetadata>;
 
   // Actions
   setDocument: (
@@ -21,9 +23,11 @@ interface PDFState {
   setCurrentPage: (page: number) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  setPageMetadata: (pageNumber: number, metadata: PageMetadata) => void;
+  getPageMetadata: (pageNumber: number) => PageMetadata | undefined;
 }
 
-export const usePDFStore = create<PDFState>((set) => ({
+export const usePDFStore = create<PDFState>((set, get) => ({
   document: null,
   fileName: null,
   filePath: null,
@@ -31,6 +35,7 @@ export const usePDFStore = create<PDFState>((set) => ({
   totalPages: 0,
   isLoading: false,
   error: null,
+  pageMetadata: new Map(),
 
   setDocument: (document, fileName, filePath, totalPages) =>
     set({
@@ -41,6 +46,7 @@ export const usePDFStore = create<PDFState>((set) => ({
       currentPage: 1,
       error: null,
       isLoading: false,
+      pageMetadata: new Map(),
     }),
 
   clearDocument: () =>
@@ -52,6 +58,7 @@ export const usePDFStore = create<PDFState>((set) => ({
       currentPage: 1,
       error: null,
       isLoading: false,
+      pageMetadata: new Map(),
     }),
 
   setCurrentPage: (page) =>
@@ -62,4 +69,15 @@ export const usePDFStore = create<PDFState>((set) => ({
   setLoading: (isLoading) => set({ isLoading }),
 
   setError: (error) => set({ error, isLoading: false }),
+
+  setPageMetadata: (pageNumber, metadata) =>
+    set((state) => {
+      const newMap = new Map(state.pageMetadata);
+      newMap.set(pageNumber, metadata);
+      return { pageMetadata: newMap };
+    }),
+
+  getPageMetadata: (pageNumber) => {
+    return get().pageMetadata.get(pageNumber);
+  },
 }));

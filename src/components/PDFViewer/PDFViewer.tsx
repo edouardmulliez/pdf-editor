@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { usePDFStore } from '../../stores/usePDFStore';
+import { useUIStore } from '../../stores/useUIStore';
+import { useAnnotationStore } from '../../stores/useAnnotationStore';
 import { renderPageToCanvas, calculateFitScale } from '../../utils/pdf-renderer';
+import { canvasToPDF } from '../../utils/coordinate-converter';
+import { generateId } from '../../utils/id-generator';
+import { openImageDialog } from '../../utils/image-loader';
+import { AnnotationLayer } from '../AnnotationLayer/AnnotationLayer';
+import type { PageMetadata } from '../../utils/coordinate-converter';
+import type { TextAnnotation, ImageAnnotation } from '../../types';
 
 interface RenderedPage {
   pageNumber: number;
@@ -14,8 +22,12 @@ export const PDFViewer: React.FC = () => {
     totalPages,
     setCurrentPage,
     isLoading,
-    error
+    error,
+    setPageMetadata,
+    getPageMetadata,
   } = usePDFStore();
+  const { activeTool, selectedFontFamily, selectedFontSize, selectedFontColor, selectedFontStyles, setEditingAnnotationId } = useUIStore();
+  const { addAnnotation, selectAnnotation } = useAnnotationStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const pagesContainerRef = useRef<HTMLDivElement>(null);
   const [renderedPages, setRenderedPages] = useState<RenderedPage[]>([]);
@@ -49,11 +61,23 @@ export const PDFViewer: React.FC = () => {
 
           if (!context) continue;
 
+          // Get viewport at scale 1.0 for metadata
+          const viewport = page.getViewport({ scale: 1.0 });
+
           await renderPageToCanvas(page, {
             scale: fitScale,
             canvasContext: context,
             canvas,
           });
+
+          // Store page metadata for coordinate conversion
+          const metadata: PageMetadata = {
+            pageNumber: pageNum,
+            scale: fitScale,
+            viewportWidth: viewport.width,
+            viewportHeight: viewport.height,
+          };
+          setPageMetadata(pageNum, metadata);
 
           pages.push({
             pageNumber: pageNum,
@@ -72,6 +96,72 @@ export const PDFViewer: React.FC = () => {
 
     renderAllPages();
   }, [pdfDoc, totalPages]);
+
+  // Handle click on page for annotation placement
+  const handlePageClick = useCallback(async (e: React.MouseEvent<HTMLDivElement>, pageNumber: number) => {
+    if (activeTool === 'text') {
+      // Get click position relative to the page wrapper
+      const rect = e.currentTarget.getBoundingClientRect();
+      const canvasX = e.clientX - rect.left;
+      const canvasY = e.clientY - rect.top;
+
+      // Convert to PDF coordinates
+      const metadata = getPageMetadata(pageNumber);
+      if (!metadata) return;
+
+      const pdfPosition = canvasToPDF(canvasX, canvasY, metadata);
+
+      // Create text annotation
+      const annotation: TextAnnotation = {
+        id: generateId(),
+        type: 'text',
+        pageNumber,
+        position: pdfPosition,
+        content: '',
+        fontFamily: selectedFontFamily,
+        fontSize: selectedFontSize,
+        fontColor: selectedFontColor,
+        fontStyles: Array.from(selectedFontStyles),
+        size: { width: 200, height: 30 }, // Default size in PDF points
+      };
+
+      addAnnotation(annotation);
+      setEditingAnnotationId(annotation.id);
+    } else if (activeTool === 'image') {
+      const imageData = await openImageDialog();
+      if (!imageData) return;
+
+      // Get click position relative to the page wrapper
+      const rect = e.currentTarget.getBoundingClientRect();
+      const canvasX = e.clientX - rect.left;
+      const canvasY = e.clientY - rect.top;
+
+      // Convert to PDF coordinates
+      const metadata = getPageMetadata(pageNumber);
+      if (!metadata) return;
+
+      const pdfPosition = canvasToPDF(canvasX, canvasY, metadata);
+
+      // Calculate size: 150pt width, proportional height
+      const aspectRatio = imageData.naturalHeight / imageData.naturalWidth;
+      const defaultWidth = 150; // PDF points
+      const defaultHeight = defaultWidth * aspectRatio;
+
+      // Create image annotation
+      const annotation: ImageAnnotation = {
+        id: generateId(),
+        type: 'image',
+        pageNumber,
+        position: pdfPosition,
+        imageData: imageData.data,
+        imageFormat: imageData.format,
+        size: { width: defaultWidth, height: defaultHeight },
+      };
+
+      addAnnotation(annotation);
+      selectAnnotation(annotation.id);
+    }
+  }, [activeTool, getPageMetadata, selectedFontFamily, selectedFontSize, selectedFontColor, selectedFontStyles, addAnnotation, setEditingAnnotationId, selectAnnotation]);
 
   // Track current page on scroll
   const handleScroll = useCallback(() => {
@@ -174,21 +264,32 @@ export const PDFViewer: React.FC = () => {
     <div ref={containerRef} className="flex-1 flex flex-col bg-gray-100">
       <div ref={pagesContainerRef} className="flex-1 overflow-auto p-8">
         <div className="flex flex-col items-center space-y-6">
-          {renderedPages.map((page) => (
-            <div
-              key={page.pageNumber}
-              className="bg-white shadow-lg inline-block"
-              data-page-number={page.pageNumber}
-            >
+          {renderedPages.map((page) => {
+            const metadata = getPageMetadata(page.pageNumber);
+            return (
               <div
-                ref={(el) => {
-                  if (el && !el.querySelector('canvas')) {
-                    el.appendChild(page.canvas);
-                  }
-                }}
-              />
-            </div>
-          ))}
+                key={page.pageNumber}
+                className={`bg-white shadow-lg inline-block relative ${activeTool ? 'cursor-crosshair' : ''}`}
+                data-page-number={page.pageNumber}
+                onClick={(e) => handlePageClick(e, page.pageNumber)}
+              >
+                <div
+                  ref={(el) => {
+                    if (el && !el.querySelector('canvas')) {
+                      el.appendChild(page.canvas);
+                    }
+                  }}
+                  className="relative"
+                />
+                {metadata && (
+                  <AnnotationLayer
+                    pageNumber={page.pageNumber}
+                    pageMetadata={metadata}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
