@@ -10,6 +10,7 @@ interface PDFState {
   totalPages: number;
   isLoading: boolean;
   error: string | null;
+  successMessage: string | null;
   pageMetadata: Map<number, PageMetadata>;
 
   // Actions
@@ -23,6 +24,7 @@ interface PDFState {
   setCurrentPage: (page: number) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  setSuccessMessage: (message: string | null) => void;
   setPageMetadata: (pageNumber: number, metadata: PageMetadata) => void;
   getPageMetadata: (pageNumber: number) => PageMetadata | undefined;
 }
@@ -35,6 +37,7 @@ export const usePDFStore = create<PDFState>((set, get) => ({
   totalPages: 0,
   isLoading: false,
   error: null,
+  successMessage: null,
   pageMetadata: new Map(),
 
   setDocument: (document, fileName, filePath, totalPages) =>
@@ -69,6 +72,8 @@ export const usePDFStore = create<PDFState>((set, get) => ({
   setLoading: (isLoading) => set({ isLoading }),
 
   setError: (error) => set({ error, isLoading: false }),
+
+  setSuccessMessage: (successMessage) => set({ successMessage }),
 
   setPageMetadata: (pageNumber, metadata) =>
     set((state) => {

@@ -1,9 +1,18 @@
+import { useEffect } from 'react';
 import { usePDFStore } from '../../stores/usePDFStore';
 import { useUIStore } from '../../stores/useUIStore';
 
 export const StatusBar: React.FC = () => {
-  const { fileName, currentPage, totalPages } = usePDFStore();
+  const { fileName, currentPage, totalPages, error, successMessage, setError, setSuccessMessage } = usePDFStore();
   const { zoomLevel } = useUIStore();
+
+  // Auto-dismiss success message after 3 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => setSuccessMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage, setSuccessMessage]);
 
   if (!fileName) {
     return (
@@ -15,7 +24,33 @@ export const StatusBar: React.FC = () => {
   }
 
   return (
-    <footer className="bg-white border-t border-gray-200 px-4 py-2 flex items-center justify-between text-sm">
+    <footer className="bg-white border-t border-gray-200 px-4 py-2 flex items-center justify-between text-sm relative">
+      {/* Success Toast */}
+      {successMessage && (
+        <div className="absolute left-4 bottom-full mb-2 px-4 py-2 bg-green-500 text-white rounded-lg shadow-lg flex items-center">
+          <span>{successMessage}</span>
+          <button
+            onClick={() => setSuccessMessage(null)}
+            className="ml-3 text-white hover:text-gray-200 font-bold"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Error Toast */}
+      {error && (
+        <div className="absolute left-4 bottom-full mb-2 px-4 py-2 bg-red-500 text-white rounded-lg shadow-lg flex items-center">
+          <span>{error}</span>
+          <button
+            onClick={() => setError(null)}
+            className="ml-3 text-white hover:text-gray-200 font-bold"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       <div className="flex items-center space-x-3 text-gray-700">
         <span data-testid="status-filename" className="font-medium">{fileName}</span>
       </div>

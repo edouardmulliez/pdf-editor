@@ -1,4 +1,5 @@
 use crate::file_ops::{read_pdf_file, PdfFileData};
+use crate::pdf_ops::{apply_annotations_to_file, Annotation};
 use tauri::AppHandle;
 
 /// Opens a file dialog to select a PDF file and returns its data.
@@ -35,4 +36,38 @@ pub async fn open_pdf_dialog(app: AppHandle) -> Result<PdfFileData, String> {
         }
         None => Err("No file selected".to_string()),
     }
+}
+
+/// Exports a PDF with annotations applied.
+///
+/// This command takes an input PDF path, applies annotations from JSON-serialized data,
+/// and saves the result to the output path. All annotations are deserialized and validated
+/// before being applied to the PDF.
+///
+/// # Arguments
+///
+/// * `input_path` - Path to the source PDF file
+/// * `output_path` - Path where the annotated PDF will be saved
+/// * `annotations_json` - JSON string containing array of annotations
+///
+/// # Returns
+///
+/// * `Ok(String)` - Success message with output path
+/// * `Err(String)` - Error message if deserialization or export fails
+#[tauri::command]
+pub async fn export_pdf(
+    input_path: String,
+    output_path: String,
+    annotations_json: String,
+) -> Result<String, String> {
+    // Deserialize JSON to Vec<Annotation>
+    let annotations: Vec<Annotation> = serde_json::from_str(&annotations_json)
+        .map_err(|e| format!("Invalid annotation data: {}", e))?;
+
+    // Apply annotations using existing Phase 0 function
+    apply_annotations_to_file(&input_path, &output_path, &annotations)
+        .map_err(|e| format!("Export failed: {}", e))?;
+
+    // Return success message
+    Ok(format!("Successfully exported PDF to {}", output_path))
 }

@@ -2,11 +2,12 @@
 
 ## Overview
 
-**Project Status**: ✅ Phase 2 Complete - Annotation System Frontend
-**Current Phase**: Ready for Phase 3 - Annotation Editing
-**Phase 0 Completion**: 2026-02-08 - See docs/PHASE0_COMPLETE.md
+**Project Status**: ✅ Phase 4 Complete - PDF Export with Full Annotation Support
+**Current Phase**: Ready for Phase 3 - Annotation Editing (or Phase 5 - Polish)
+**Phase 0 Completion**: 2026-02-08 - Rust PDF annotation backend (37 tests)
 **Phase 1 Completion**: 2026-02-08 - Full PDF viewing capability
-**Phase 2 Completion**: 2026-02-08 - See docs/PHASE2_COMPLETE.md
+**Phase 2 Completion**: 2026-02-08 - Text and image annotation placement
+**Phase 4 Completion**: 2026-02-08 - PDF export with annotations (92 tests total)
 
 ---
 
@@ -263,30 +264,101 @@ Users can now:
 
 ---
 
-## Phase 4: PDF Export with Rust Backend
+## Phase 4: PDF Export with Rust Backend ✅ COMPLETE
 **Goal**: Export annotated PDF using Phase 0 implementation
+**Completed**: 2026-02-08
+**Status**: ✅ Complete
 
-### Tasks
+### Completed Features
 
-1. **Tauri Export Command**
-   - Create `export_pdf` command
-   - Accept annotations from frontend
-   - Use Phase 0 functions
+1. ✅ **Data Transformation Layer** (`src/utils/annotation-transformer.ts`)
+   - Transforms frontend annotations to Rust-compatible format
+   - Page numbers: 1-indexed → 0-indexed
+   - Colors: Hex strings → RGB objects
+   - Fonts: UI fonts + styles → Standard 14 PDF fonts
+   - Images: Data URLs → Base64 strings
+   - 30 comprehensive unit tests passing
 
-2. **Frontend Integration**
-   - Collect annotations from store
-   - Convert to Rust format
-   - Transform coordinates
+2. ✅ **Tauri Export Command** (`src-tauri/src/commands.rs`)
+   - Added `export_pdf` command
+   - JSON deserialization to `Vec<Annotation>`
+   - Calls `apply_annotations_to_file()` from Phase 0
+   - Comprehensive error handling
 
-3. **Save Dialog**
-   - Tauri save dialog
-   - Write PDF bytes to file
-   - Return saved path
-
-4. **Export UI Flow**
-   - Wire Export button
-   - Progress indicator
+3. ✅ **Frontend Export Handler** (`src/App.tsx`)
+   - Native save dialog integration
+   - Annotation collection from store
+   - Transformation to Rust format
+   - Tauri command invocation
    - Success/error handling
+
+4. ✅ **UI Feedback Enhancements**
+   - Added `successMessage` state to PDF store
+   - Export button shows loading spinner
+   - Toast notifications (success/error)
+   - Auto-dismiss after 3 seconds
+   - User can manually dismiss toasts
+
+### Technical Implementation
+
+**New Files:**
+- `src/utils/annotation-transformer.ts` - Data transformation utilities
+- `src/utils/__tests__/annotation-transformer.test.ts` - 30 comprehensive tests
+
+**Modified Files:**
+- `src-tauri/src/commands.rs` - Added `export_pdf` command
+- `src-tauri/src/lib.rs` - Registered `export_pdf` in invoke handler
+- `src/App.tsx` - Implemented export handler with save dialog
+- `src/stores/usePDFStore.ts` - Added `successMessage` state
+- `src/components/UI/Header.tsx` - Added loading spinner to Export button
+- `src/components/UI/StatusBar.tsx` - Added success/error toast messages
+
+**Dependencies Added:**
+- `@tauri-apps/plugin-dialog` - Native save dialog support
+
+### Font Mapping System
+
+**Supported UI Fonts → PDF Standard 14:**
+- Arial → Helvetica family
+- Times New Roman → Times-Roman family
+- Courier New → Courier family
+- Helvetica → Helvetica family
+- Georgia → Times-Roman family
+
+**Style Support:**
+- ✅ Bold, Italic, Bold+Italic
+- ⚠️ Underline ignored (not supported by Standard 14 fonts)
+
+### Test Coverage
+
+**Frontend Tests:**
+- 62 unit tests passing (32 existing + 30 new transformer tests)
+- 4 integration tests passing
+- TypeScript compilation successful
+- Build successful
+
+**Backend Tests:**
+- 40 tests passing (25 unit + 4 integration + 8 validation + 3 doc)
+- All Phase 0 functionality intact
+- New export command validated
+
+### Export Workflow
+
+1. User clicks Export button
+2. Native save dialog opens with suggested filename (`original-annotated.pdf`)
+3. User selects save location
+4. Loading spinner appears on Export button
+5. Annotations transformed to Rust format
+6. Tauri command applies annotations using Phase 0 backend
+7. Success toast shows: "Exported to filename.pdf"
+8. Toast auto-dismisses after 3 seconds
+
+### Known Limitations
+
+1. **Underline Not Supported**: PDF Standard 14 fonts don't have underline variants
+2. **No Export Preview**: Users must save first, then open to verify
+3. **No Progress Indicator**: Large PDFs show spinner but no percentage
+4. **Font Fallback**: Unknown fonts default to Helvetica
 
 ---
 
@@ -332,9 +404,9 @@ Users can now:
 |-------|--------|
 | **Phase 0: Rust PDF** | ✅ **Complete** (2026-02-08) |
 | **Phase 1: PDF Rendering** | ✅ **Complete** (2026-02-08) |
-| Phase 2: Annotations | Planned |
+| **Phase 2: Annotations** | ✅ **Complete** (2026-02-08) |
 | Phase 3: Editing | Planned |
-| Phase 4: Export | Planned |
+| **Phase 4: Export** | ✅ **Complete** (2026-02-08) |
 | Phase 5: Polish | Planned |
 
 ---

@@ -61,7 +61,7 @@ describe('useAnnotationStore', () => {
       result.current.updateAnnotation('test-1', { content: 'Updated' });
     });
 
-    expect(result.current.annotations[0].content).toBe('Updated');
+    expect((result.current.annotations[0] as any).content).toBe('Updated');
   });
 
   it('deletes annotation', () => {
@@ -191,7 +191,7 @@ describe('useAnnotationStore', () => {
 
     expect(page1Annotations).toHaveLength(2);
     expect(page2Annotations).toHaveLength(1);
-    expect(page1Annotations[0].content).toBe('Page 1');
-    expect(page1Annotations[1].content).toBe('Page 1 again');
+    expect((page1Annotations[0] as any).content).toBe('Page 1');
+    expect((page1Annotations[1] as any).content).toBe('Page 1 again');
   });
 });

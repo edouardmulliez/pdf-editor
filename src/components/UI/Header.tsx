@@ -1,4 +1,5 @@
 import { useUIStore } from '../../stores/useUIStore';
+import { usePDFStore } from '../../stores/usePDFStore';
 
 interface HeaderProps {
   onOpenFile: () => void;
@@ -12,6 +13,7 @@ export const Header: React.FC<HeaderProps> = ({
   hasDocument,
 }) => {
   const { toggleSidebar, sidebarVisible } = useUIStore();
+  const { isLoading } = usePDFStore();
 
   return (
     <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 shadow-sm">
@@ -66,12 +68,26 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
         <button
           onClick={onExport}
-          disabled={!hasDocument}
-          className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={!hasDocument || isLoading}
+          className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
         >
-          Export
+          {isLoading ? (
+            <>
+              <SpinnerIcon className="animate-spin mr-2" />
+              Exporting...
+            </>
+          ) : (
+            'Export'
+          )}
         </button>
       </div>
     </header>
   );
 };
+
+const SpinnerIcon = ({ className }: { className?: string }) => (
+  <svg className={`inline w-4 h-4 ${className}`} viewBox="0 0 24 24">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+  </svg>
+);
