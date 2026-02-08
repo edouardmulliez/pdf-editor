@@ -58,6 +58,7 @@ export const Header: React.FC<HeaderProps> = ({
 
       <div className="flex items-center space-x-2">
         <button
+          data-testid="open-pdf-button"
           onClick={onOpenFile}
           className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm"
         >

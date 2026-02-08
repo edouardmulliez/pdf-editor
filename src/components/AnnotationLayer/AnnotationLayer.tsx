@@ -54,6 +54,7 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({ pageNumber, pa
         return (
           <input
             key={annotation.id}
+            data-testid="annotation-text-input"
             autoFocus
             value={annotation.content}
             onChange={(e) => updateAnnotation(annotation.id, { content: e.target.value })}
@@ -101,6 +102,7 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({ pageNumber, pa
       return (
         <div
           key={annotation.id}
+          data-testid={`text-annotation-${annotation.id}`}
           className={`${baseClasses} flex items-center`}
           style={style}
           onClick={(e) => handleAnnotationClick(e, annotation.id)}
@@ -125,6 +127,7 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({ pageNumber, pa
       return (
         <div
           key={annotation.id}
+          data-testid={`image-annotation-${annotation.id}`}
           className={baseClasses}
           style={style}
           onClick={(e) => handleAnnotationClick(e, annotation.id)}

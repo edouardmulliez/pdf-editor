@@ -35,17 +35,32 @@ export const PDFViewer: React.FC = () => {
 
   // Render all pages on load
   useEffect(() => {
-    if (!pdfDoc || !containerRef.current) return;
+    if (!pdfDoc) return;
 
     const renderAllPages = async () => {
       try {
         setIsRendering(true);
         const pages: RenderedPage[] = [];
 
+        // Wait for container to be ready (especially important in tests)
+        let container = containerRef.current;
+        let retries = 0;
+        while (!container && retries < 10) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          container = containerRef.current;
+          retries++;
+        }
+
+        if (!container) {
+          console.warn('Container ref is null after retries');
+          setIsRendering(false);
+          return;
+        }
+
         // Get first page to calculate common scale
         const firstPage = await pdfDoc.getPage(1);
         const viewport = firstPage.getViewport({ scale: 1.0 });
-        const container = containerRef.current!;
+
         const fitScale = calculateFitScale(
           viewport.width,
           viewport.height,
@@ -261,7 +276,7 @@ export const PDFViewer: React.FC = () => {
   }
 
   return (
-    <div ref={containerRef} className="flex-1 flex flex-col bg-gray-100">
+    <div ref={containerRef} data-testid="pdf-viewer" className="flex-1 flex flex-col bg-gray-100">
       <div ref={pagesContainerRef} className="flex-1 overflow-auto p-8">
         <div className="flex flex-col items-center space-y-6">
           {renderedPages.map((page) => {
@@ -271,6 +286,7 @@ export const PDFViewer: React.FC = () => {
                 key={page.pageNumber}
                 className={`bg-white shadow-lg inline-block relative ${activeTool ? 'cursor-crosshair' : ''}`}
                 data-page-number={page.pageNumber}
+                data-testid={`pdf-page-${page.pageNumber}`}
                 onClick={(e) => handlePageClick(e, page.pageNumber)}
               >
                 <div

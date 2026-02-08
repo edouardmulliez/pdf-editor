@@ -82,10 +82,36 @@ pdf-editor/
 
 ## Testing
 
-### Run All Tests
+This project has comprehensive test coverage for both backend (Rust) and frontend (TypeScript).
 
+### Frontend Tests (32 working + 4 configured)
+
+**Run All Frontend Tests:**
 ```bash
-# Run all tests (unit + integration)
+npm test                    # Run unit + integration tests
+```
+
+**Unit Tests** (fast, < 1 second):
+```bash
+npm run test:unit           # Run once
+npm run test:unit:watch     # Watch mode for development
+npm run test:unit:ui        # Visual UI in browser
+npm run test:coverage       # Generate coverage report
+```
+
+**Integration Tests**:
+```bash
+npm run test:integration        # Run all integration tests
+npm run test:integration:ui     # Visual Playwright UI
+npm run test:integration:debug  # Step-by-step debugger
+```
+
+> **Note**: Uses Tauri's `mockIPC` to simulate the Rust backend. See [docs/INTEGRATION_TESTS_STATUS.md](./docs/INTEGRATION_TESTS_STATUS.md) for details.
+
+### Backend Tests (37 tests)
+
+**Run All Backend Tests:**
+```bash
 cd src-tauri
 cargo test
 
@@ -100,23 +126,10 @@ cargo test --test pdf_validation_test
 cargo test test_end_to_end_pdf_editing -- --nocapture
 ```
 
-### Test Categories
-
-**Unit Tests** (6 tests in `src/`):
-```bash
-cargo test --lib
-```
-
-**Integration Tests** (12 tests in `tests/`):
-```bash
-cargo test --test pdf_integration_test    # 4 tests - E2E workflow
-cargo test --test pdf_validation_test     # 8 tests - PDF validation
-```
-
 ### Generate Test PDFs
 
 ```bash
-# Generate example PDFs for manual inspection
+cd src-tauri
 cargo run --example generate_test_pdfs
 ```
 
@@ -140,16 +153,6 @@ This creates 6 example PDFs in `src-tauri/` demonstrating:
   - 5 phases with 31 specific tasks
   - Technical notes and code examples
   - Risk assessment and mitigation
-
-- **[PHASE0_COMPLETE.md](./docs/PHASE0_COMPLETE.md)** - Phase 0 completion report
-  - Rust PDF capabilities validation
-  - All test results and learnings
-  - Known limitations
-
-- **[PDF_VALIDATION.md](./docs/PDF_VALIDATION.md)** - PDF validation system
-  - API reference and usage examples
-  - How it caught Safari/Preview bug
-  - 8 validation tests explained
 
 ## Recommended IDE Setup
 

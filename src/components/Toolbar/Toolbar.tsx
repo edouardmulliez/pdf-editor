@@ -47,6 +47,7 @@ export const Toolbar: React.FC = () => {
         </button>
 
         <button
+          data-testid="text-tool-button"
           onClick={() => handleToolClick('text')}
           disabled={!pdfDoc}
           className={`p-2 rounded transition-colors ${
@@ -61,6 +62,7 @@ export const Toolbar: React.FC = () => {
         </button>
 
         <button
+          data-testid="image-tool-button"
           onClick={() => handleToolClick('image')}
           disabled={!pdfDoc}
           className={`p-2 rounded transition-colors ${
