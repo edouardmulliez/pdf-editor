@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { useAnnotationStore } from '../../stores/useAnnotationStore';
 import { useUIStore } from '../../stores/useUIStore';
-import { pdfToCanvas } from '../../utils/coordinate-converter';
+import { pdfToCanvas, canvasToPDF } from '../../utils/coordinate-converter';
+import { constrainToPageBounds } from '../../utils/bounds-checker';
+import { calculateNewSize, maintainAspectRatio, type ResizeHandle as ResizeHandleType } from '../../utils/resize-logic';
+import { ResizeHandle } from './ResizeHandle';
 import type { PageMetadata } from '../../utils/coordinate-converter';
 import type { Annotation } from '../../types';
 
@@ -17,14 +20,152 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({ pageNumber, pa
 
   const annotations = getAnnotationsByPage(pageNumber);
 
+  // Drag state
+  const [dragState, setDragState] = useState<{
+    isDragging: boolean;
+    annotationId: string;
+    startMousePos: { x: number; y: number };
+    startAnnotationPos: { x: number; y: number };
+  } | null>(null);
+
+  // Resize state
+  const [resizeState, setResizeState] = useState<{
+    isResizing: boolean;
+    handle: ResizeHandleType;
+    annotationId: string;
+    startMousePos: { x: number; y: number };
+    startSize: { width: number; height: number };
+    startPosition: { x: number; y: number };
+    aspectRatio?: number;
+  } | null>(null);
+
   const handleAnnotationClick = (e: React.MouseEvent, id: string) => {
     e.stopPropagation(); // Prevent page click handler
     selectAnnotation(id);
   };
 
+  const handleAnnotationDoubleClick = (e: React.MouseEvent, annotation: Annotation) => {
+    e.stopPropagation();
+    if (annotation.type === 'text') {
+      setEditingAnnotationId(annotation.id);
+    }
+  };
+
+  // Drag handlers
+  const handleAnnotationMouseDown = useCallback((e: React.MouseEvent, annotation: Annotation) => {
+    e.stopPropagation();
+    selectAnnotation(annotation.id);
+
+    setDragState({
+      isDragging: true,
+      annotationId: annotation.id,
+      startMousePos: { x: e.clientX, y: e.clientY },
+      startAnnotationPos: annotation.position,
+    });
+  }, [selectAnnotation]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    // Handle drag
+    if (dragState?.isDragging) {
+      const deltaX = e.clientX - dragState.startMousePos.x;
+      const deltaY = e.clientY - dragState.startMousePos.y;
+
+      // Convert delta to PDF units (divide by scale)
+      const pdfDeltaX = deltaX / pageMetadata.scale;
+      const pdfDeltaY = -deltaY / pageMetadata.scale; // Flip Y for PDF coords
+
+      const annotation = annotations.find(a => a.id === dragState.annotationId);
+      if (!annotation) return;
+
+      const newPosition = {
+        x: dragState.startAnnotationPos.x + pdfDeltaX,
+        y: dragState.startAnnotationPos.y + pdfDeltaY,
+      };
+
+      // Apply bounds checking
+      const constrainedPosition = constrainToPageBounds(
+        newPosition,
+        annotation.size,
+        pageMetadata
+      );
+
+      updateAnnotation(dragState.annotationId, { position: constrainedPosition });
+    }
+
+    // Handle resize
+    if (resizeState?.isResizing) {
+      const deltaX = e.clientX - resizeState.startMousePos.x;
+      const deltaY = e.clientY - resizeState.startMousePos.y;
+
+      // Convert delta to PDF units
+      const pdfDeltaX = deltaX / pageMetadata.scale;
+      const pdfDeltaY = -deltaY / pageMetadata.scale; // Flip Y for PDF coords
+
+      const annotation = annotations.find(a => a.id === resizeState.annotationId);
+      if (!annotation) return;
+
+      // Calculate new size and position
+      const result = calculateNewSize(
+        resizeState.handle,
+        { x: pdfDeltaX, y: pdfDeltaY },
+        resizeState.startSize,
+        resizeState.startPosition
+      );
+
+      let finalSize = result.size;
+      let finalPosition = result.position;
+
+      // Maintain aspect ratio for images
+      if (resizeState.aspectRatio) {
+        finalSize = maintainAspectRatio(finalSize, resizeState.aspectRatio, resizeState.handle);
+      }
+
+      // Apply bounds checking
+      finalPosition = constrainToPageBounds(finalPosition, finalSize, pageMetadata);
+
+      updateAnnotation(resizeState.annotationId, {
+        size: finalSize,
+        position: finalPosition
+      });
+    }
+  }, [dragState, resizeState, annotations, pageMetadata, updateAnnotation]);
+
+  const handleMouseUp = useCallback(() => {
+    setDragState(null);
+    setResizeState(null);
+  }, []);
+
+  // Resize handle handlers
+  const handleResizeMouseDown = useCallback((
+    e: React.MouseEvent,
+    annotation: Annotation,
+    handle: ResizeHandleType
+  ) => {
+    e.stopPropagation(); // Don't trigger annotation drag
+
+    const aspectRatio = annotation.type === 'image'
+      ? annotation.size.width / annotation.size.height
+      : undefined;
+
+    setResizeState({
+      isResizing: true,
+      handle,
+      annotationId: annotation.id,
+      startMousePos: { x: e.clientX, y: e.clientY },
+      startSize: annotation.size,
+      startPosition: annotation.position,
+      aspectRatio,
+    });
+  }, []);
+
   const renderAnnotation = (annotation: Annotation) => {
     const isSelected = annotation.id === selectedAnnotationId;
-    const baseClasses = `absolute cursor-pointer transition-all ${
+    const isEditing = editingAnnotationId === annotation.id;
+    const isTextAnnotation = annotation.type === 'text';
+
+    // Cursor styles
+    const cursorStyle = isTextAnnotation && !isEditing ? 'cursor-text' : 'cursor-move';
+    const baseClasses = `absolute ${cursorStyle} transition-all ${
       isSelected ? 'ring-2 ring-primary-500' : ''
     }`;
 
@@ -106,6 +247,8 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({ pageNumber, pa
           className={`${baseClasses} flex items-center`}
           style={style}
           onClick={(e) => handleAnnotationClick(e, annotation.id)}
+          onDoubleClick={(e) => handleAnnotationDoubleClick(e, annotation)}
+          onMouseDown={(e) => handleAnnotationMouseDown(e, annotation)}
         >
           <span
             style={{
@@ -115,10 +258,19 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({ pageNumber, pa
               fontWeight,
               fontStyle,
               textDecoration,
+              pointerEvents: 'none', // Let parent handle events
             }}
           >
             {annotation.content || 'Text'}
           </span>
+          {isSelected && (
+            <>
+              <ResizeHandle position="tl" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
+              <ResizeHandle position="tr" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
+              <ResizeHandle position="bl" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
+              <ResizeHandle position="br" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
+            </>
+          )}
         </div>
       );
     }
@@ -131,12 +283,22 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({ pageNumber, pa
           className={baseClasses}
           style={style}
           onClick={(e) => handleAnnotationClick(e, annotation.id)}
+          onMouseDown={(e) => handleAnnotationMouseDown(e, annotation)}
         >
           <img
             src={annotation.imageData}
             alt="annotation"
             className="w-full h-full object-contain"
+            style={{ pointerEvents: 'none' }} // Let parent handle events
           />
+          {isSelected && (
+            <>
+              <ResizeHandle position="tl" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
+              <ResizeHandle position="tr" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
+              <ResizeHandle position="bl" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
+              <ResizeHandle position="br" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
+            </>
+          )}
         </div>
       );
     }
@@ -145,7 +307,11 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({ pageNumber, pa
   };
 
   return (
-    <div className="absolute inset-0 pointer-events-none">
+    <div
+      className="absolute inset-0 pointer-events-none"
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+    >
       <div className="relative w-full h-full pointer-events-auto">
         {annotations.map(renderAnnotation)}
       </div>

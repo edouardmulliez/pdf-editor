@@ -27,7 +27,7 @@ export const PDFViewer: React.FC = () => {
     getPageMetadata,
   } = usePDFStore();
   const { activeTool, selectedFontFamily, selectedFontSize, selectedFontColor, selectedFontStyles, setEditingAnnotationId } = useUIStore();
-  const { addAnnotation, selectAnnotation } = useAnnotationStore();
+  const { addAnnotation, selectAnnotation, selectedAnnotationId, deleteAnnotation } = useAnnotationStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const pagesContainerRef = useRef<HTMLDivElement>(null);
   const [renderedPages, setRenderedPages] = useState<RenderedPage[]>([]);
@@ -112,8 +112,14 @@ export const PDFViewer: React.FC = () => {
     renderAllPages();
   }, [pdfDoc, totalPages]);
 
-  // Handle click on page for annotation placement
+  // Handle click on page for annotation placement and deselection
   const handlePageClick = useCallback(async (e: React.MouseEvent<HTMLDivElement>, pageNumber: number) => {
+    // If no active tool and target is the page wrapper, deselect annotation
+    if (!activeTool && e.target === e.currentTarget) {
+      selectAnnotation(null);
+      return;
+    }
+
     if (activeTool === 'text') {
       // Get click position relative to the page wrapper
       const rect = e.currentTarget.getBoundingClientRect();
@@ -208,6 +214,19 @@ export const PDFViewer: React.FC = () => {
     container.addEventListener('scroll', handleScroll);
     return () => container.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
+
+  // Handle keyboard shortcuts (Delete/Backspace)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedAnnotationId) {
+        e.preventDefault();
+        deleteAnnotation(selectedAnnotationId);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedAnnotationId, deleteAnnotation]);
 
   if (isLoading) {
     return (
