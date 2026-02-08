@@ -13,7 +13,6 @@
 
 **Goal**: Validate and implement comprehensive PDF annotation capabilities in Rust
 **Status**: ✅ Complete - All 37 tests passing
-**Duration**: 3 days
 
 ### Implemented Features
 
@@ -81,7 +80,7 @@ apply_annotations_to_file("in.pdf", "out.pdf", &annotations)?;
 
 ## Phase 1: PDF Rendering & File Operations ✅ COMPLETE
 **Goal**: Enable users to open and view PDF files
-**Duration**: 1 day (2026-02-08)
+**Completed**: 2026-02-08
 **Status**: ✅ Complete
 
 ### Completed Features
@@ -169,26 +168,24 @@ Users can now:
 
 ## Phase 2: Annotation System Frontend
 **Goal**: UI for adding text and image annotations
-**Duration Estimate**: 1-2 weeks
 
 ### Tasks
 
-1. **Text Annotation Placement** (4-5 hours)
+1. **Text Annotation Placement**
    - Click to add text
    - Apply formatting from toolbar
    - Convert canvas ↔ PDF coordinates
 
-2. **Image Annotation Placement** (3-4 hours)
+2. **Image Annotation Placement**
    - Image file dialog
-   - Base64 conversion
    - Position image on click
 
-3. **Annotation Rendering Layer** (3-4 hours)
+3. **Annotation Rendering Layer**
    - Overlay annotations on canvas
    - Handle scaling with zoom
    - Render per-page annotations
 
-4. **Toolbar Active States** (1-2 hours)
+4. **Toolbar Active States**
    - Visual feedback for active tool
    - Disable when no PDF loaded
    - Tool-specific cursors
@@ -197,30 +194,29 @@ Users can now:
 
 ## Phase 3: Annotation Editing
 **Goal**: Edit, move, resize, delete annotations
-**Duration Estimate**: 1 week
 
 ### Tasks
 
-1. **Selection** (3-4 hours)
+1. **Selection**
    - Click to select annotation
    - Visual selection feedback
    - Deselect on outside click
 
-2. **Drag-to-Move** (4-5 hours)
+2. **Drag-to-Move**
    - Implement drag handlers
    - Constrain to page bounds
    - Update position in real-time
 
-3. **Resize Handles** (5-6 hours)
+3. **Resize Handles**
    - 8 resize handles (corners + edges)
    - Maintain aspect ratio for images
    - Minimum size constraints
 
-4. **Edit Text Content** (2-3 hours)
+4. **Edit Text Content**
    - Double-click to edit
    - Update content on save
 
-5. **Delete** (1-2 hours)
+5. **Delete**
    - Delete button + keyboard shortcut
    - Remove from store
 
@@ -228,26 +224,25 @@ Users can now:
 
 ## Phase 4: PDF Export with Rust Backend
 **Goal**: Export annotated PDF using Phase 0 implementation
-**Duration Estimate**: 3-5 days (accelerated by Phase 0)
 
 ### Tasks
 
-1. **Tauri Export Command** (2-3 hours)
+1. **Tauri Export Command**
    - Create `export_pdf` command
    - Accept annotations from frontend
    - Use Phase 0 functions
 
-2. **Frontend Integration** (3-4 hours)
+2. **Frontend Integration**
    - Collect annotations from store
    - Convert to Rust format
    - Transform coordinates
 
-3. **Save Dialog** (2-3 hours)
+3. **Save Dialog**
    - Tauri save dialog
    - Write PDF bytes to file
    - Return saved path
 
-4. **Export UI Flow** (2 hours)
+4. **Export UI Flow**
    - Wire Export button
    - Progress indicator
    - Success/error handling
@@ -256,53 +251,50 @@ Users can now:
 
 ## Phase 5: Polish & Refinement
 **Goal**: UX improvements and bug fixes
-**Duration Estimate**: 1 week
 
 ### Tasks
 
-1. **Keyboard Shortcuts** (2-3 hours)
+1. **Keyboard Shortcuts**
    - Cmd/Ctrl+O, S, Z
    - Tool shortcuts (T, I, V)
    - Delete/ESC
 
-2. **Zoom Display** (1-2 hours)
+2. **Zoom Display**
    - Show current zoom percentage
    - Update on resize
 
-3. **Error Handling** (3-4 hours)
+3. **Error Handling**
    - Error boundaries
    - User-friendly messages
    - Validation
 
-4. **Performance** (4-6 hours)
+4. **Performance**
    - Profile and optimize
    - React.memo for re-renders
    - Test with large PDFs
 
-5. **UI/UX Polish** (3-4 hours)
+5. **UI/UX Polish**
    - Animations/transitions
    - Consistent styling
    - Icons and spacing
 
-6. **Testing** (1-2 days)
+6. **Testing**
    - macOS and Windows
    - Various PDF types
    - Edge cases
 
 ---
 
-## Timeline
+## Implementation Status
 
-| Phase | Duration | Cumulative |
-|-------|----------|------------|
-| **Phase 0: Rust PDF** | ✅ **3 days** | **3 days** |
-| Phase 1: PDF Rendering | 1-2 weeks | 2.5 weeks |
-| Phase 2: Annotations | 1-2 weeks | 4.5 weeks |
-| Phase 3: Editing | 1 week | 5.5 weeks |
-| Phase 4: Export | 3-5 days | 6 weeks |
-| Phase 5: Polish | 1 week | 7 weeks |
-
-**Total**: 6-7 weeks for MVP
+| Phase | Status |
+|-------|--------|
+| **Phase 0: Rust PDF** | ✅ **Complete** (2026-02-08) |
+| **Phase 1: PDF Rendering** | ✅ **Complete** (2026-02-08) |
+| Phase 2: Annotations | Planned |
+| Phase 3: Editing | Planned |
+| Phase 4: Export | Planned |
+| Phase 5: Polish | Planned |
 
 ---
 
