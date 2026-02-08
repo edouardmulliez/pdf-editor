@@ -86,7 +86,7 @@ export const Sidebar: React.FC = () => {
               ref={thumb.pageNumber === currentPage ? currentThumbnailRef : null}
               onClick={() => scrollToPage(thumb.pageNumber)}
               className={`
-                cursor-pointer rounded-lg overflow-hidden border-2 transition-all
+                cursor-pointer border-2 transition-all inline-block
                 ${
                   thumb.pageNumber === currentPage
                     ? 'border-primary-500 shadow-md'
@@ -100,7 +100,7 @@ export const Sidebar: React.FC = () => {
                     el.appendChild(thumb.canvas);
                   }
                 }}
-                className="bg-white"
+                className="bg-white block"
               />
               <div
                 className={`
