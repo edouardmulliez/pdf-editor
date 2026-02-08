@@ -27,7 +27,7 @@ export const useAnnotationStore = create<AnnotationState>((set, get) => ({
   updateAnnotation: (id, updates) =>
     set((state) => ({
       annotations: state.annotations.map((ann) =>
-        ann.id === id ? { ...ann, ...updates } : ann
+        ann.id === id ? { ...ann, ...updates } as Annotation : ann
       ),
     })),
 

@@ -15,6 +15,7 @@ interface UIState {
   // Actions
   setActiveTool: (tool: Tool) => void;
   setSidebarVisible: (visible: boolean) => void;
+  toggleSidebar: () => void;
   setZoomLevel: (zoom: number) => void;
   setSelectedFontFamily: (family: string) => void;
   setSelectedFontSize: (size: number) => void;
@@ -36,6 +37,8 @@ export const useUIStore = create<UIState>((set) => ({
   setActiveTool: (tool) => set({ activeTool: tool }),
 
   setSidebarVisible: (visible) => set({ sidebarVisible: visible }),
+
+  toggleSidebar: () => set((state) => ({ sidebarVisible: !state.sidebarVisible })),
 
   setZoomLevel: (zoom) => set({ zoomLevel: Math.max(25, Math.min(zoom, 300)) }),
 

@@ -1,21 +1,35 @@
-import React from 'react';
 import { usePDFStore } from '../../stores/usePDFStore';
 import { useUIStore } from '../../stores/useUIStore';
 
 export const StatusBar: React.FC = () => {
-  const { currentPage, totalPages } = usePDFStore();
+  const { fileName, currentPage, totalPages } = usePDFStore();
   const { zoomLevel } = useUIStore();
 
-  if (totalPages === 0) {
-    return null;
+  if (!fileName) {
+    return (
+      <footer className="bg-white border-t border-gray-200 px-4 py-2 flex items-center justify-between text-sm text-gray-500">
+        <span>No document loaded</span>
+        <span>Ready</span>
+      </footer>
+    );
   }
 
   return (
-    <footer className="h-10 bg-gray-100 border-t border-gray-200 flex items-center justify-between px-4 text-sm text-gray-600">
-      <div>
-        Page {currentPage} of {totalPages}
+    <footer className="bg-white border-t border-gray-200 px-4 py-2 flex items-center justify-between text-sm">
+      <div className="flex items-center space-x-3 text-gray-700">
+        <span className="font-medium">{fileName}</span>
       </div>
-      <div>{zoomLevel}%</div>
+
+      <div className="flex items-center space-x-2 text-gray-600">
+        <span>
+          Page <strong className="font-semibold">{currentPage}</strong> of{' '}
+          <strong className="font-semibold">{totalPages}</strong>
+        </span>
+      </div>
+
+      <div className="text-gray-600">
+        <span>{zoomLevel}%</span>
+      </div>
     </footer>
   );
 };

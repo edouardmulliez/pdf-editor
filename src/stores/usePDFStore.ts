@@ -1,15 +1,23 @@
 import { create } from 'zustand';
-import { PDFDocument } from '../types';
+import type { PDFDocumentProxy } from 'pdfjs-dist';
 
 interface PDFState {
-  document: PDFDocument | null;
+  document: PDFDocumentProxy | null;
+  fileName: string | null;
+  filePath: string | null;
   currentPage: number;
   totalPages: number;
   isLoading: boolean;
   error: string | null;
 
   // Actions
-  setDocument: (document: PDFDocument | null) => void;
+  setDocument: (
+    doc: PDFDocumentProxy,
+    fileName: string,
+    filePath: string,
+    numPages: number
+  ) => void;
+  clearDocument: () => void;
   setCurrentPage: (page: number) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -17,17 +25,33 @@ interface PDFState {
 
 export const usePDFStore = create<PDFState>((set) => ({
   document: null,
+  fileName: null,
+  filePath: null,
   currentPage: 1,
   totalPages: 0,
   isLoading: false,
   error: null,
 
-  setDocument: (document) =>
+  setDocument: (document, fileName, filePath, totalPages) =>
     set({
       document,
-      totalPages: document?.numPages || 0,
+      fileName,
+      filePath,
+      totalPages,
       currentPage: 1,
       error: null,
+      isLoading: false,
+    }),
+
+  clearDocument: () =>
+    set({
+      document: null,
+      fileName: null,
+      filePath: null,
+      totalPages: 0,
+      currentPage: 1,
+      error: null,
+      isLoading: false,
     }),
 
   setCurrentPage: (page) =>
