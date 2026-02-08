@@ -14,9 +14,7 @@ test.beforeEach(async ({ page }) => {
   await loadTestPDF(page);
 });
 
-test.skip('user adds image annotation', async ({ page }) => {
-  // FIXME: Image annotation feature is currently broken in the app itself
-  // Error occurs when running manually too, not just in tests
+test('user adds image annotation', async ({ page }) => {
   const errors = collectConsoleErrors(page);
 
   // Click Image tool

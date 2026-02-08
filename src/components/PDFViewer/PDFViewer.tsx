@@ -143,19 +143,19 @@ export const PDFViewer: React.FC = () => {
       addAnnotation(annotation);
       setEditingAnnotationId(annotation.id);
     } else if (activeTool === 'image') {
-      const imageData = await openImageDialog();
-      if (!imageData) return;
-
-      // Get click position relative to the page wrapper
+      // Get click position and metadata BEFORE async operations
+      // (React events are not valid after async operations)
       const rect = e.currentTarget.getBoundingClientRect();
       const canvasX = e.clientX - rect.left;
       const canvasY = e.clientY - rect.top;
 
-      // Convert to PDF coordinates
       const metadata = getPageMetadata(pageNumber);
       if (!metadata) return;
 
       const pdfPosition = canvasToPDF(canvasX, canvasY, metadata);
+
+      const imageData = await openImageDialog();
+      if (!imageData) return;
 
       // Calculate size: 150pt width, proportional height
       const aspectRatio = imageData.naturalHeight / imageData.naturalWidth;

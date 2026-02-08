@@ -84,20 +84,15 @@ cargo run --example generate_test_pdfs
 This project uses a hybrid testing approach with comprehensive coverage:
 
 **Frontend Tests:**
-- **Unit Tests** (32 tests) ✅: Test stores, utilities, and core logic in isolation
-  - Fast execution (< 1 second)
-  - Run automatically in watch mode during development
+- **Unit Tests**: Test stores, utilities, and core logic in isolation
   - Located in `src/**/__tests__/`
-  - **Status**: All working, comprehensive coverage
 - **Integration Tests** (3 passing, 1 skipped) ✅: Test complete user flows with mocked Tauri backend
   - Uses Tauri's `mockIPC` to simulate Rust backend
-  - Tests PDF loading and text annotation flows
   - Located in `tests/integration/`
-  - **Status**: Working! (1 test skipped due to app bug, not test issue)
 
 **Backend Tests (37 tests):**
-- **Unit Tests** (22 tests): Test PDF operations in `src/pdf_ops.rs`
-- **Integration Tests** (15 tests): Test end-to-end workflows and validation
+- **Unit Tests**: Test PDF operations in `src/pdf_ops.rs`
+- **Integration Tests**: Test end-to-end workflows and validation
 - Located in `src-tauri/tests/`
 
 **When to Run Tests:**
