@@ -13,7 +13,8 @@ export function constrainToPageBounds(
   size: Size,
   pageMetadata: PageMetadata
 ): Position {
-  const { width: pageWidth, height: pageHeight } = pageMetadata.viewport;
+  const pageWidth = pageMetadata.viewportWidth;
+  const pageHeight = pageMetadata.viewportHeight;
 
   // Ensure annotation stays within page bounds
   // PDF coordinates: bottom-left origin
@@ -40,7 +41,8 @@ export function isWithinBounds(
   size: Size,
   pageMetadata: PageMetadata
 ): boolean {
-  const { width: pageWidth, height: pageHeight } = pageMetadata.viewport;
+  const pageWidth = pageMetadata.viewportWidth;
+  const pageHeight = pageMetadata.viewportHeight;
 
   return (
     position.x >= 0 &&
