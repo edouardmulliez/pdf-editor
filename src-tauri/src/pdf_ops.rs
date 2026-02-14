@@ -928,9 +928,13 @@ fn apply_annotations_to_page(
                 ]));
 
                 // Set position
+                // Adjust Y coordinate: PDF Td positions text by baseline, but we want
+                // the top of the text at the user's click position. Subtract font size
+                // to move the baseline down so the text top aligns with the click.
+                let adjusted_y = ann.position.y - text_ann.font_size;
                 content.operations.push(Operation::new("Td", vec![
                     ann.position.x.into(),
-                    ann.position.y.into(),
+                    adjusted_y.into(),
                 ]));
 
                 // Show text
@@ -958,13 +962,17 @@ fn apply_annotations_to_page(
                 content.operations.push(Operation::new("q", vec![]));
 
                 // Transform matrix
+                // Adjust Y coordinate: PDF cm matrix positions image by bottom-left corner,
+                // but we want the top-left corner at the user's click position. Subtract
+                // image height to move the bottom-left down so the top-left aligns with the click.
+                let adjusted_y = ann.position.y - image_ann.height;
                 content.operations.push(Operation::new("cm", vec![
                     image_ann.width.into(),
                     0.0.into(),
                     0.0.into(),
                     image_ann.height.into(),
                     ann.position.x.into(),
-                    ann.position.y.into(),
+                    adjusted_y.into(),
                 ]));
 
                 // Draw image
