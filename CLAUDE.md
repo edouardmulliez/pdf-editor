@@ -86,11 +86,11 @@ This project uses a hybrid testing approach with comprehensive coverage:
 **Frontend Tests:**
 - **Unit Tests**: Test stores, utilities, and core logic in isolation
   - Located in `src/**/__tests__/`
-- **Integration Tests** (3 passing, 1 skipped) ✅: Test complete user flows with mocked Tauri backend
+- **Integration Tests:**
   - Uses Tauri's `mockIPC` to simulate Rust backend
   - Located in `tests/integration/`
 
-**Backend Tests (37 tests):**
+**Backend Tests:**
 - **Unit Tests**: Test PDF operations in `src/pdf_ops.rs`
 - **Integration Tests**: Test end-to-end workflows and validation
 - Located in `src-tauri/tests/`
@@ -102,10 +102,6 @@ This project uses a hybrid testing approach with comprehensive coverage:
 - **When changing PDF operations**: Run backend tests
 - **Before releases**: Run integration tests (`npm run test:integration`) and manual testing
 
-**Test Coverage:**
-- Frontend: 35 tests (32 unit + 3 integration passing)
-- Backend: 37 tests (22 unit + 15 integration)
-- Total: 72 tests passing (1 skipped due to app bug)
 
 See [E2E_TESTING_IMPLEMENTATION.md](./docs/E2E_TESTING_IMPLEMENTATION.md) and [INTEGRATION_TESTS_FIXED.md](./docs/INTEGRATION_TESTS_FIXED.md) for detailed documentation.
 
