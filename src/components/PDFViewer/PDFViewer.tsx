@@ -132,6 +132,26 @@ export const PDFViewer: React.FC = () => {
 
       const pdfPosition = canvasToPDF(canvasX, canvasY, metadata);
 
+      // Measure font metrics using Canvas API
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // Set font to match annotation settings
+      const fontWeight = selectedFontStyles.has('bold') ? 'bold' : 'normal';
+      const fontStyle = selectedFontStyles.has('italic') ? 'italic' : 'normal';
+      ctx.font = `${fontStyle} ${fontWeight} ${selectedFontSize}px ${selectedFontFamily}`;
+
+      // Measure a sample text to get accurate font metrics
+      // We use 'X' as it's a standard character for measuring font ascent
+      const metrics = ctx.measureText('X');
+
+      // Get actual font metrics from Canvas TextMetrics API
+      const fontMetrics = {
+        ascent: metrics.actualBoundingBoxAscent,
+        descent: metrics.actualBoundingBoxDescent,
+      };
+
       // Create text annotation
       const annotation: TextAnnotation = {
         id: generateId(),
@@ -143,6 +163,7 @@ export const PDFViewer: React.FC = () => {
         fontSize: selectedFontSize,
         fontColor: selectedFontColor,
         fontStyles: Array.from(selectedFontStyles),
+        fontMetrics,
         size: { width: 200, height: 30 }, // Default size in PDF points
       };
 

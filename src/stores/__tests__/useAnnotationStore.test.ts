@@ -29,6 +29,7 @@ describe('useAnnotationStore', () => {
       fontSize: 14,
       fontColor: '#000000',
       fontStyles: [],
+      fontMetrics: { ascent: 10.92, descent: 3.08 },
       size: { width: 100, height: 30 },
     };
 
@@ -53,6 +54,7 @@ describe('useAnnotationStore', () => {
       fontSize: 14,
       fontColor: '#000000',
       fontStyles: [],
+      fontMetrics: { ascent: 10.92, descent: 3.08 },
       size: { width: 100, height: 30 },
     };
 
@@ -76,6 +78,7 @@ describe('useAnnotationStore', () => {
       fontSize: 14,
       fontColor: '#000000',
       fontStyles: [],
+      fontMetrics: { ascent: 10.92, descent: 3.08 },
       size: { width: 100, height: 30 },
     };
 
@@ -116,6 +119,7 @@ describe('useAnnotationStore', () => {
       fontSize: 14,
       fontColor: '#000000',
       fontStyles: [],
+      fontMetrics: { ascent: 10.92, descent: 3.08 },
       size: { width: 100, height: 30 },
     };
     const annotation2: Annotation = {
@@ -128,6 +132,7 @@ describe('useAnnotationStore', () => {
       fontSize: 14,
       fontColor: '#000000',
       fontStyles: [],
+      fontMetrics: { ascent: 10.92, descent: 3.08 },
       size: { width: 100, height: 30 },
     };
 
@@ -153,6 +158,7 @@ describe('useAnnotationStore', () => {
       fontSize: 14,
       fontColor: '#000000',
       fontStyles: [],
+      fontMetrics: { ascent: 10.92, descent: 3.08 },
       size: { width: 100, height: 30 },
     };
     const annotation2: Annotation = {
@@ -165,6 +171,7 @@ describe('useAnnotationStore', () => {
       fontSize: 14,
       fontColor: '#000000',
       fontStyles: [],
+      fontMetrics: { ascent: 10.92, descent: 3.08 },
       size: { width: 100, height: 30 },
     };
     const annotation3: Annotation = {
@@ -177,6 +184,7 @@ describe('useAnnotationStore', () => {
       fontSize: 14,
       fontColor: '#000000',
       fontStyles: [],
+      fontMetrics: { ascent: 10.92, descent: 3.08 },
       size: { width: 100, height: 30 },
     };
 

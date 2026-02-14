@@ -26,6 +26,11 @@ interface RustPosition {
   y: number;
 }
 
+interface RustFontMetrics {
+  ascent: number;
+  descent: number;
+}
+
 interface RustAnnotation {
   page: number; // 0-indexed
   position: RustPosition;
@@ -35,6 +40,7 @@ interface RustAnnotation {
   font_family?: string;
   font_size?: number;
   color?: RustColor;
+  font_metrics?: RustFontMetrics;
   // Image fields
   image_data?: string;
   format?: 'jpeg' | 'png';
@@ -177,6 +183,10 @@ function transformTextAnnotation(annotation: TextAnnotation): RustAnnotation {
     font_family: mapFontToStandard14(annotation.fontFamily, annotation.fontStyles),
     font_size: annotation.fontSize,
     color: hexToRgb(annotation.fontColor),
+    font_metrics: {
+      ascent: annotation.fontMetrics.ascent,
+      descent: annotation.fontMetrics.descent,
+    },
   };
 }
 

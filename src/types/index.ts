@@ -17,6 +17,11 @@ export interface BaseAnnotation {
   size: Size;
 }
 
+export interface FontMetrics {
+  ascent: number;
+  descent: number;
+}
+
 export interface TextAnnotation extends BaseAnnotation {
   type: 'text';
   content: string;
@@ -24,6 +29,7 @@ export interface TextAnnotation extends BaseAnnotation {
   fontSize: number;
   fontColor: string;
   fontStyles: FontStyle[];
+  fontMetrics: FontMetrics;
 }
 
 export interface ImageAnnotation extends BaseAnnotation {

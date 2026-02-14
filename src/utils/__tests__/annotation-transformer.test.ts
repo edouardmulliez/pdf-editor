@@ -146,6 +146,7 @@ describe('transformAnnotationsForRust', () => {
         fontSize: 16,
         fontColor: '#000000',
         fontStyles: [],
+        fontMetrics: { ascent: 10, descent: 3 },
       };
 
       const result = transformAnnotationsForRust([annotation]);
@@ -159,6 +160,7 @@ describe('transformAnnotationsForRust', () => {
         font_family: 'Helvetica',
         font_size: 16,
         color: { r: 0, g: 0, b: 0 },
+        font_metrics: { ascent: 10, descent: 3 },
       });
     });
 
@@ -174,6 +176,7 @@ describe('transformAnnotationsForRust', () => {
         fontSize: 18,
         fontColor: '#FF0000',
         fontStyles: ['bold'],
+        fontMetrics: { ascent: 10, descent: 3 },
       };
 
       const result = transformAnnotationsForRust([annotation]);
@@ -197,6 +200,7 @@ describe('transformAnnotationsForRust', () => {
         fontSize: 14,
         fontColor: '#0000FF',
         fontStyles: ['italic'],
+        fontMetrics: { ascent: 10, descent: 3 },
       };
 
       const result = transformAnnotationsForRust([annotation]);
@@ -219,6 +223,7 @@ describe('transformAnnotationsForRust', () => {
         fontSize: 20,
         fontColor: '#00FF00',
         fontStyles: ['bold', 'italic'],
+        fontMetrics: { ascent: 10, descent: 3 },
       };
 
       const result = transformAnnotationsForRust([annotation]);
@@ -242,6 +247,7 @@ describe('transformAnnotationsForRust', () => {
         fontSize: 16,
         fontColor: '#000000',
         fontStyles: ['underline'],
+        fontMetrics: { ascent: 10, descent: 3 },
       };
 
       const result = transformAnnotationsForRust([annotation]);
@@ -262,6 +268,7 @@ describe('transformAnnotationsForRust', () => {
         fontSize: 16,
         fontColor: '#AB12CD',
         fontStyles: [],
+        fontMetrics: { ascent: 10, descent: 3 },
       };
 
       const result = transformAnnotationsForRust([annotation]);
@@ -350,6 +357,7 @@ describe('transformAnnotationsForRust', () => {
         fontSize: 18,
         fontColor: '#000000',
         fontStyles: ['bold'],
+        fontMetrics: { ascent: 10, descent: 3 },
       };
 
       const imageAnnotation: ImageAnnotation = {
@@ -384,6 +392,7 @@ describe('transformAnnotationsForRust', () => {
           fontSize: 12,
           fontColor: '#000000',
           fontStyles: [],
+        fontMetrics: { ascent: 10, descent: 3 },
         },
         {
           id: 'text-2',
@@ -396,6 +405,7 @@ describe('transformAnnotationsForRust', () => {
           fontSize: 12,
           fontColor: '#000000',
           fontStyles: [],
+        fontMetrics: { ascent: 10, descent: 3 },
         },
         {
           id: 'text-3',
@@ -408,6 +418,7 @@ describe('transformAnnotationsForRust', () => {
           fontSize: 12,
           fontColor: '#000000',
           fontStyles: [],
+        fontMetrics: { ascent: 10, descent: 3 },
         },
       ];
 
@@ -438,6 +449,7 @@ describe('transformAnnotationsForRust', () => {
           fontSize: 12,
           fontColor: '#000000',
           fontStyles: [],
+        fontMetrics: { ascent: 10, descent: 3 },
         },
         {
           id: 'text-2',
@@ -450,6 +462,7 @@ describe('transformAnnotationsForRust', () => {
           fontSize: 12,
           fontColor: '#000000',
           fontStyles: [],
+        fontMetrics: { ascent: 10, descent: 3 },
         },
         {
           id: 'text-3',
@@ -462,6 +475,7 @@ describe('transformAnnotationsForRust', () => {
           fontSize: 12,
           fontColor: '#000000',
           fontStyles: [],
+        fontMetrics: { ascent: 10, descent: 3 },
         },
       ];
 

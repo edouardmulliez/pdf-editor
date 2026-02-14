@@ -56,6 +56,7 @@
 //!             font_family: "Helvetica-Bold".to_string(),
 //!             font_size: 18.0,
 //!             color: Color::BLACK,
+//!             font_metrics: FontMetrics::from_font_size(18.0),
 //!         }),
 //!     },
 //! ];
@@ -157,6 +158,24 @@ pub enum ImageFormat {
     Png,
 }
 
+/// Font metrics from Canvas measureText API
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct FontMetrics {
+    pub ascent: f32,
+    pub descent: f32,
+}
+
+impl FontMetrics {
+    /// Creates approximate font metrics from font size (for testing purposes)
+    /// Uses typical ratios: ascent = 0.78 * font_size, descent = 0.22 * font_size
+    pub fn from_font_size(font_size: f32) -> Self {
+        Self {
+            ascent: font_size * 0.78,
+            descent: font_size * 0.22,
+        }
+    }
+}
+
 /// Text annotation with font, size, and color
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TextAnnotation {
@@ -164,6 +183,7 @@ pub struct TextAnnotation {
     pub font_family: String,
     pub font_size: f32,
     pub color: Color,
+    pub font_metrics: FontMetrics,
 }
 
 /// Image annotation with embedded image data
@@ -928,12 +948,11 @@ fn apply_annotations_to_page(
                 ]));
 
                 // Set position
-                // Adjust Y coordinate: PDF Td positions text by baseline, but we want
-                // the top of the text at the user's click position. Subtract the ascent
-                // (height above baseline) to position the baseline correctly.
-                // Typical fonts have ascent ≈ 0.78 * font_size (varies by font, but 0.78 is a good average)
-                let ascent = text_ann.font_size * 0.78;
-                let adjusted_y = ann.position.y - ascent;
+                // Frontend position.y is where the top of the text should appear (in PDF coordinates)
+                // PDF Td positions text by baseline, which is ascent points below the top
+                // In PDF coords (Y increases upward), "below" means subtracting from Y
+                // So: baseline_y = top_y - ascent
+                let adjusted_y = ann.position.y - text_ann.font_metrics.ascent;
                 content.operations.push(Operation::new("Td", vec![
                     ann.position.x.into(),
                     adjusted_y.into(),
@@ -1333,6 +1352,7 @@ mod tests {
                 font_family: "Helvetica".to_string(),
                 font_size: 12.0,
                 color: Color::BLACK,
+                font_metrics: FontMetrics::from_font_size(12.0),
             }),
         };
 
@@ -1386,6 +1406,7 @@ mod tests {
                     font_family: "Helvetica-Bold".to_string(),
                     font_size: 24.0,
                     color: Color::RED,
+                    font_metrics: FontMetrics::from_font_size(24.0),
                 }),
             },
             Annotation {
@@ -1406,6 +1427,7 @@ mod tests {
                     font_family: "Times-Roman".to_string(),
                     font_size: 14.0,
                     color: Color::BLUE,
+                    font_metrics: FontMetrics::from_font_size(14.0),
                 }),
             },
         ];
@@ -1747,6 +1769,7 @@ mod tests {
                     font_family: "Helvetica-Bold".to_string(),
                     font_size: 18.0,
                     color: Color::RED,
+                    font_metrics: FontMetrics::from_font_size(18.0),
                 }),
             },
             Annotation {
@@ -1757,6 +1780,7 @@ mod tests {
                     font_family: "Times-Italic".to_string(),
                     font_size: 14.0,
                     color: Color::BLUE,
+                    font_metrics: FontMetrics::from_font_size(14.0),
                 }),
             },
             Annotation {
@@ -1767,6 +1791,7 @@ mod tests {
                     font_family: "Courier".to_string(),
                     font_size: 12.0,
                     color: Color::BLACK,
+                    font_metrics: FontMetrics::from_font_size(12.0),
                 }),
             },
         ];
@@ -1812,6 +1837,7 @@ mod tests {
                     font_family: "Helvetica-Bold".to_string(),
                     font_size: 16.0,
                     color: Color::BLACK,
+                    font_metrics: FontMetrics::from_font_size(16.0),
                 }),
             },
             Annotation {
@@ -1842,6 +1868,7 @@ mod tests {
                     font_family: "Times-Italic".to_string(),
                     font_size: 10.0,
                     color: Color { r: 128, g: 128, b: 128 },
+                    font_metrics: FontMetrics::from_font_size(10.0),
                 }),
             },
         ];
@@ -1878,6 +1905,7 @@ mod tests {
                     font_family: "Helvetica".to_string(),
                     font_size: 12.0,
                     color: Color::BLACK,
+                    font_metrics: FontMetrics::from_font_size(12.0),
                 }),
             },
             Annotation {
@@ -1888,6 +1916,7 @@ mod tests {
                     font_family: "Helvetica".to_string(),
                     font_size: 12.0,
                     color: Color::BLACK,
+                    font_metrics: FontMetrics::from_font_size(12.0),
                 }),
             },
         ];
@@ -1906,6 +1935,7 @@ mod tests {
                     font_family: "Helvetica".to_string(),
                     font_size: 12.0,
                     color: Color::BLACK,
+                    font_metrics: FontMetrics::from_font_size(12.0),
                 }),
             },
         ];
@@ -1937,6 +1967,7 @@ mod tests {
                     font_family: "Helvetica-Bold".to_string(),
                     font_size: 16.0,
                     color: Color::RED,
+                    font_metrics: FontMetrics::from_font_size(16.0),
                 }),
             },
         ];
