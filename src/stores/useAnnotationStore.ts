@@ -21,8 +21,7 @@ export const useAnnotationStore = create<AnnotationState>((set, get) => ({
   addAnnotation: (annotation) =>
     set((state) => ({
       annotations: [...state.annotations, annotation],
-      // Don't auto-select - let the caller decide
-      // Text annotations go into edit mode, images get explicitly selected
+      selectedAnnotationId: annotation.id,
     })),
 
   updateAnnotation: (id, updates) =>

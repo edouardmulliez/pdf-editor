@@ -4,12 +4,10 @@ import type { Position, Size } from '../../types/annotations';
 import type { PageMetadata } from '../coordinate-converter';
 
 const createPageMetadata = (width: number, height: number): PageMetadata => ({
-  viewport: {
-    width,
-    height,
-    scale: 1,
-  },
+  pageNumber: 1,
   scale: 1,
+  viewportWidth: width,
+  viewportHeight: height,
 });
 
 describe('bounds-checker', () => {
