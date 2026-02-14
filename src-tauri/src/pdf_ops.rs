@@ -929,9 +929,11 @@ fn apply_annotations_to_page(
 
                 // Set position
                 // Adjust Y coordinate: PDF Td positions text by baseline, but we want
-                // the top of the text at the user's click position. Subtract font size
-                // to move the baseline down so the text top aligns with the click.
-                let adjusted_y = ann.position.y - text_ann.font_size;
+                // the top of the text at the user's click position. Subtract the ascent
+                // (height above baseline) to position the baseline correctly.
+                // Typical fonts have ascent ≈ 0.78 * font_size (varies by font, but 0.78 is a good average)
+                let ascent = text_ann.font_size * 0.78;
+                let adjusted_y = ann.position.y - ascent;
                 content.operations.push(Operation::new("Td", vec![
                     ann.position.x.into(),
                     adjusted_y.into(),
