@@ -94,7 +94,9 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({ pageNumber, pa
       const constrainedPosition = constrainToPageBounds(
         newPosition,
         annotation.size,
-        pageMetadata
+        pageMetadata,
+        annotation.type,
+        annotation.type === 'text' ? annotation.fontMetrics : undefined
       );
 
       updateAnnotation(newDragState.annotationId, { position: constrainedPosition });
@@ -160,7 +162,13 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({ pageNumber, pa
       }
 
       // Apply bounds checking
-      finalPosition = constrainToPageBounds(finalPosition, finalSize, pageMetadata);
+      finalPosition = constrainToPageBounds(
+        finalPosition,
+        finalSize,
+        pageMetadata,
+        annotation.type,
+        annotation.type === 'text' ? annotation.fontMetrics : undefined
+      );
 
       updateAnnotation(newResizeState.annotationId, {
         size: finalSize,
@@ -178,40 +186,159 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({ pageNumber, pa
     window.addEventListener('mouseup', handleUp);
   }, [pageMetadata, updateAnnotation]);
 
-  const renderAnnotation = (annotation: Annotation) => {
-    const isSelected = annotation.id === selectedAnnotationId;
-    const isEditing = editingAnnotationId === annotation.id;
-    const isTextAnnotation = annotation.type === 'text';
+  return (
+    <div className="absolute inset-0 pointer-events-none">
+      {/* Single SVG canvas for all text annotations */}
+      <svg
+        className="absolute inset-0 w-full h-full"
+        style={{ pointerEvents: 'none' }}
+      >
+        {annotations.map((annotation) => {
+          if (annotation.type !== 'text' || annotation.id === editingAnnotationId) {
+            return null; // Skip images and text being edited
+          }
 
-    // Cursor styles
-    const cursorStyle = isTextAnnotation && !isEditing ? 'cursor-text' : 'cursor-move';
-    const baseClasses = `absolute ${cursorStyle} transition-all ${
-      isSelected ? 'ring-2 ring-primary-500' : ''
-    }`;
+          const canvasPos = pdfToCanvas(annotation.position, pageMetadata);
+          const fontSize = annotation.fontSize * pageMetadata.scale;
+          const fontWeight = annotation.fontStyles.includes('bold') ? 'bold' : 'normal';
+          const fontStyle = annotation.fontStyles.includes('italic') ? 'italic' : 'normal';
+          const textDecoration = annotation.fontStyles.includes('underline') ? 'underline' : 'none';
 
-    // Convert PDF coordinates to canvas coordinates
-    const canvasPos = pdfToCanvas(annotation.position, pageMetadata);
-    const canvasSize = {
-      width: annotation.size.width * pageMetadata.scale,
-      height: annotation.size.height * pageMetadata.scale,
-    };
+          return (
+            <text
+              key={annotation.id}
+              data-testid={`text-annotation-${annotation.id}`}
+              x={canvasPos.x}
+              y={canvasPos.y}
+              fontFamily={annotation.fontFamily}
+              fontSize={fontSize}
+              fill={annotation.fontColor}
+              fontWeight={fontWeight}
+              fontStyle={fontStyle}
+              textDecoration={textDecoration}
+              dominantBaseline="alphabetic"
+              style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                selectAnnotation(annotation.id);
+              }}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                setEditingAnnotationId(annotation.id);
+              }}
+              onMouseDown={(e) => handleAnnotationMouseDown(e as any, annotation)}
+            >
+              {annotation.content || 'Text'}
+            </text>
+          );
+        })}
+      </svg>
 
-    const style = {
-      left: `${canvasPos.x}px`,
-      top: `${canvasPos.y}px`,
-      width: `${canvasSize.width}px`,
-      height: `${canvasSize.height}px`,
-    };
+      {/* Selection indicators and resize handles (HTML overlays) */}
+      {annotations.map((annotation) => {
+        if (annotation.id !== selectedAnnotationId || annotation.id === editingAnnotationId) {
+          return null;
+        }
 
-    if (annotation.type === 'text') {
-      const fontWeight = annotation.fontStyles.includes('bold') ? 'bold' : 'normal';
-      const fontStyle = annotation.fontStyles.includes('italic') ? 'italic' : 'normal';
-      const textDecoration = annotation.fontStyles.includes('underline')
-        ? 'underline'
-        : 'none';
+        const canvasPos = pdfToCanvas(annotation.position, pageMetadata);
+        const canvasSize = {
+          width: annotation.size.width * pageMetadata.scale,
+          height: annotation.size.height * pageMetadata.scale,
+        };
 
-      // Inline editing mode
-      if (editingAnnotationId === annotation.id) {
+        // For text, calculate bounding box top-left (baseline - ascent)
+        let boxTop = canvasPos.y;
+        let boxLeft = canvasPos.x;
+        if (annotation.type === 'text') {
+          boxTop = canvasPos.y - (annotation.fontMetrics.ascent * pageMetadata.scale);
+        }
+
+        return (
+          <div
+            key={`selection-${annotation.id}`}
+            className="absolute pointer-events-none ring-2 ring-primary-500"
+            style={{
+              left: `${boxLeft}px`,
+              top: `${boxTop}px`,
+              width: `${canvasSize.width}px`,
+              height: `${canvasSize.height}px`,
+            }}
+          >
+            <ResizeHandle position="tl" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
+            <ResizeHandle position="tr" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
+            <ResizeHandle position="bl" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
+            <ResizeHandle position="br" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
+          </div>
+        );
+      })}
+
+      {/* Image annotations (keep as <img> elements) */}
+      {annotations.map((annotation) => {
+        if (annotation.type !== 'image') return null;
+
+        const isSelected = annotation.id === selectedAnnotationId;
+        const canvasPos = pdfToCanvas(annotation.position, pageMetadata);
+        const canvasSize = {
+          width: annotation.size.width * pageMetadata.scale,
+          height: annotation.size.height * pageMetadata.scale,
+        };
+
+        return (
+          <div
+            key={annotation.id}
+            data-testid={`image-annotation-${annotation.id}`}
+            className={`absolute cursor-move transition-all ${
+              isSelected ? 'ring-2 ring-primary-500' : ''
+            }`}
+            style={{
+              left: `${canvasPos.x}px`,
+              top: `${canvasPos.y}px`,
+              width: `${canvasSize.width}px`,
+              height: `${canvasSize.height}px`,
+              pointerEvents: 'auto',
+            }}
+            onClick={(e) => handleAnnotationClick(e, annotation.id)}
+            onMouseDown={(e) => handleAnnotationMouseDown(e, annotation)}
+          >
+            <img
+              src={annotation.imageData}
+              alt="annotation"
+              className="w-full h-full object-contain"
+              style={{ pointerEvents: 'none' }}
+            />
+            {isSelected && (
+              <>
+                <ResizeHandle position="tl" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
+                <ResizeHandle position="tr" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
+                <ResizeHandle position="bl" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
+                <ResizeHandle position="br" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
+              </>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Edit input overlay (for text being edited) */}
+      {editingAnnotationId && (() => {
+        const annotation = annotations.find(a => a.id === editingAnnotationId);
+        if (!annotation || annotation.type !== 'text') return null;
+
+        // Position.y is baseline, calculate top for input (baseline - ascent)
+        const canvasBaselinePos = pdfToCanvas(annotation.position, pageMetadata);
+        const inputTopPos = {
+          x: canvasBaselinePos.x,
+          y: canvasBaselinePos.y - (annotation.fontMetrics.ascent * pageMetadata.scale)
+        };
+
+        const canvasSize = {
+          width: annotation.size.width * pageMetadata.scale,
+          height: annotation.size.height * pageMetadata.scale,
+        };
+
+        const fontWeight = annotation.fontStyles.includes('bold') ? 'bold' : 'normal';
+        const fontStyle = annotation.fontStyles.includes('italic') ? 'italic' : 'normal';
+        const textDecoration = annotation.fontStyles.includes('underline') ? 'underline' : 'none';
+
         return (
           <input
             key={annotation.id}
@@ -239,8 +366,8 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({ pageNumber, pa
             onClick={(e) => e.stopPropagation()}
             style={{
               position: 'absolute',
-              left: `${canvasPos.x}px`,
-              top: `${canvasPos.y}px`,
+              left: `${inputTopPos.x}px`,
+              top: `${inputTopPos.y}px`,
               width: `${canvasSize.width}px`,
               height: `${canvasSize.height}px`,
               fontFamily: annotation.fontFamily,
@@ -254,83 +381,11 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({ pageNumber, pa
               background: 'rgba(255, 255, 255, 0.9)',
               padding: '2px 4px',
               boxSizing: 'border-box',
+              pointerEvents: 'auto',
             }}
           />
         );
-      }
-
-      // Normal text rendering
-      return (
-        <div
-          key={annotation.id}
-          data-testid={`text-annotation-${annotation.id}`}
-          className={`${baseClasses} flex items-center`}
-          style={style}
-          onClick={(e) => handleAnnotationClick(e, annotation.id)}
-          onDoubleClick={(e) => handleAnnotationDoubleClick(e, annotation)}
-          onMouseDown={(e) => handleAnnotationMouseDown(e, annotation)}
-        >
-          <span
-            style={{
-              fontFamily: annotation.fontFamily,
-              fontSize: `${annotation.fontSize * pageMetadata.scale}px`,
-              color: annotation.fontColor,
-              fontWeight,
-              fontStyle,
-              textDecoration,
-              pointerEvents: 'none', // Let parent handle events
-            }}
-          >
-            {annotation.content || 'Text'}
-          </span>
-          {isSelected && (
-            <>
-              <ResizeHandle position="tl" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
-              <ResizeHandle position="tr" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
-              <ResizeHandle position="bl" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
-              <ResizeHandle position="br" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
-            </>
-          )}
-        </div>
-      );
-    }
-
-    if (annotation.type === 'image') {
-      return (
-        <div
-          key={annotation.id}
-          data-testid={`image-annotation-${annotation.id}`}
-          className={baseClasses}
-          style={style}
-          onClick={(e) => handleAnnotationClick(e, annotation.id)}
-          onMouseDown={(e) => handleAnnotationMouseDown(e, annotation)}
-        >
-          <img
-            src={annotation.imageData}
-            alt="annotation"
-            className="w-full h-full object-contain"
-            style={{ pointerEvents: 'none' }} // Let parent handle events
-          />
-          {isSelected && (
-            <>
-              <ResizeHandle position="tl" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
-              <ResizeHandle position="tr" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
-              <ResizeHandle position="bl" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
-              <ResizeHandle position="br" onMouseDown={(e, handle) => handleResizeMouseDown(e, annotation, handle)} />
-            </>
-          )}
-        </div>
-      );
-    }
-
-    return null;
-  };
-
-  return (
-    <div className="absolute inset-0 pointer-events-none">
-      <div className="relative w-full h-full pointer-events-auto">
-        {annotations.map(renderAnnotation)}
-      </div>
+      })()}
     </div>
   );
 };

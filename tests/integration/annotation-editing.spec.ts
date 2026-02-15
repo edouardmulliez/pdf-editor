@@ -114,13 +114,15 @@ test.describe('Text Annotation Editing', () => {
     // Wait for resize handles to appear
     await page.waitForTimeout(200);
 
-    // Get initial size
-    const initialBox = await annotation.boundingBox();
+    // Get the selection overlay (visible box around text)
+    const selectionBox = page.locator('.absolute.pointer-events-none.ring-2.ring-primary-500');
+    await expect(selectionBox).toBeVisible();
+    const initialBox = await selectionBox.boundingBox();
     expect(initialBox).not.toBeNull();
 
     // Find the bottom-right resize handle
-    // ResizeHandles should be positioned absolutely with specific classes
-    const resizeHandle = annotation.locator('.absolute.w-2.h-2.bg-primary-500').nth(3); // br handle
+    // ResizeHandles are now in a separate selection overlay, not inside the text element
+    const resizeHandle = page.locator('.absolute.w-2.h-2.bg-primary-500').nth(3); // br handle
     await expect(resizeHandle).toBeVisible({ timeout: 2000 });
 
     // Get handle position
@@ -141,8 +143,14 @@ test.describe('Text Annotation Editing', () => {
     // Wait for size update
     await page.waitForTimeout(200);
 
-    // Get new size
-    const newBox = await annotation.boundingBox();
+    // Re-select annotation to ensure selection box is visible
+    await annotation.click();
+    await page.waitForTimeout(100);
+
+    // Get updated selection box
+    const updatedSelectionBox = page.locator('.absolute.pointer-events-none.ring-2.ring-primary-500');
+    await expect(updatedSelectionBox).toBeVisible();
+    const newBox = await updatedSelectionBox.boundingBox();
     expect(newBox).not.toBeNull();
 
     // Verify the annotation has been resized
@@ -176,12 +184,15 @@ test.describe('Text Annotation Editing', () => {
     await annotation.click();
     await page.waitForTimeout(200);
 
-    // Get initial state
-    const initialBox = await annotation.boundingBox();
+    // Get the selection overlay (visible box around text)
+    const selectionBox = page.locator('.absolute.pointer-events-none.ring-2.ring-primary-500');
+    await expect(selectionBox).toBeVisible();
+    const initialBox = await selectionBox.boundingBox();
     expect(initialBox).not.toBeNull();
 
     // Find the top-left resize handle
-    const resizeHandle = annotation.locator('.absolute.w-2.h-2.bg-primary-500').first(); // tl handle
+    // ResizeHandles are now in a separate selection overlay, not inside the text element
+    const resizeHandle = page.locator('.absolute.w-2.h-2.bg-primary-500').first(); // tl handle
     await expect(resizeHandle).toBeVisible({ timeout: 2000 });
 
     // Get handle position
@@ -202,8 +213,14 @@ test.describe('Text Annotation Editing', () => {
     // Wait for size update
     await page.waitForTimeout(200);
 
-    // Get new size
-    const newBox = await annotation.boundingBox();
+    // Re-select annotation to ensure selection box is visible
+    await annotation.click();
+    await page.waitForTimeout(100);
+
+    // Get updated selection box
+    const updatedSelectionBox = page.locator('.absolute.pointer-events-none.ring-2.ring-primary-500');
+    await expect(updatedSelectionBox).toBeVisible();
+    const newBox = await updatedSelectionBox.boundingBox();
     expect(newBox).not.toBeNull();
 
     // When dragging top-left handle to the right/down, the annotation should shrink

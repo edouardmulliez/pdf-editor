@@ -176,11 +176,11 @@ export const PDFViewer: React.FC = () => {
       // We use 'X' as it's a standard character for measuring font ascent
       const metrics = ctx.measureText('X');
 
-      // Get font bounding box metrics (includes space for diacritics/accents)
-      // This better matches CSS text rendering which accounts for line-height
+      // Get actual bounding box metrics for more accurate text positioning
+      // actualBoundingBox gives tighter bounds for the rendered text
       const fontMetrics = {
-        ascent: metrics.fontBoundingBoxAscent || metrics.actualBoundingBoxAscent,
-        descent: metrics.fontBoundingBoxDescent || metrics.actualBoundingBoxDescent,
+        ascent: metrics.actualBoundingBoxAscent || metrics.fontBoundingBoxAscent,
+        descent: metrics.actualBoundingBoxDescent || metrics.fontBoundingBoxDescent,
       };
 
       // Create text annotation

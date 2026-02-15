@@ -1,8 +1,10 @@
 export type FontStyle = 'bold' | 'italic' | 'underline';
 
 export interface Position {
-  x: number;
-  y: number;
+  x: number;  // Horizontal position in PDF points from left edge
+  y: number;  // For TEXT: Y-coordinate of ALPHABETIC BASELINE
+              // For IMAGE: Y-coordinate of top-left corner
+              // (PDF coordinates: bottom-left origin, Y increases upward)
 }
 
 export interface Size {
@@ -18,8 +20,8 @@ export interface BaseAnnotation {
 }
 
 export interface FontMetrics {
-  ascent: number;
-  descent: number;
+  ascent: number;   // Distance from baseline to top (actualBoundingBoxAscent)
+  descent: number;  // Distance from baseline to bottom (actualBoundingBoxDescent)
 }
 
 export interface TextAnnotation extends BaseAnnotation {

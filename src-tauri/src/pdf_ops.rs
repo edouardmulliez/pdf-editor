@@ -966,15 +966,11 @@ fn apply_annotations_to_page(
                     text_ann.font_size.into(),
                 ]));
 
-                // Set position
-                // Frontend position.y is where the top of the text should appear (in PDF coordinates)
-                // PDF Td positions text by baseline, which is ascent points below the top
-                // In PDF coords (Y increases upward), "below" means subtracting from Y
-                // So: baseline_y = top_y - ascent
-                let adjusted_y = ann.position.y - text_ann.font_metrics.ascent;
+                // Set position (position.y represents the alphabetic baseline)
+                // SVG <text> and PDF Td both use baseline positioning, so no adjustment needed
                 content.operations.push(Operation::new("Td", vec![
                     ann.position.x.into(),
-                    adjusted_y.into(),
+                    ann.position.y.into(),
                 ]));
 
                 // Show text

@@ -6,12 +6,16 @@ import type { PageMetadata } from './coordinate-converter';
  * @param position - The desired position in PDF coordinates
  * @param size - The size of the annotation in PDF units
  * @param pageMetadata - Metadata about the page dimensions
+ * @param annotationType - Optional: 'text' or 'image' for type-specific bounds
+ * @param fontMetrics - Optional: font metrics for text annotations (baseline positioning)
  * @returns Constrained position that keeps annotation within bounds
  */
 export function constrainToPageBounds(
   position: Position,
   size: Size,
-  pageMetadata: PageMetadata
+  pageMetadata: PageMetadata,
+  annotationType?: 'text' | 'image',
+  fontMetrics?: { ascent: number; descent: number }
 ): Position {
   const pageWidth = pageMetadata.viewportWidth;
   const pageHeight = pageMetadata.viewportHeight;
@@ -19,9 +23,16 @@ export function constrainToPageBounds(
   // Ensure annotation stays within page bounds
   // PDF coordinates: bottom-left origin
   const minX = 0;
-  const minY = 0;
   const maxX = pageWidth - size.width;
-  const maxY = pageHeight - size.height;
+
+  let minY = 0;
+  let maxY = pageHeight - size.height;
+
+  // For text: position.y is baseline, text extends [baseline-ascent, baseline+descent]
+  if (annotationType === 'text' && fontMetrics) {
+    minY = fontMetrics.ascent;  // Baseline can't be less than ascent from bottom
+    maxY = pageHeight - fontMetrics.descent;  // Must leave room for descent
+  }
 
   return {
     x: Math.max(minX, Math.min(maxX, position.x)),

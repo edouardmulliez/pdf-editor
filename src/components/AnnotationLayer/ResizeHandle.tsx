@@ -28,6 +28,7 @@ export const ResizeHandle: React.FC<ResizeHandleProps> = React.memo(({ position,
         ...positionMap[position],
         cursor: cursorMap[position],
         zIndex: 10,
+        pointerEvents: 'auto', // Override parent's pointer-events-none
       }}
       onMouseDown={(e) => onMouseDown(e, position)}
     />
