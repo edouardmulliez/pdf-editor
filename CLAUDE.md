@@ -26,16 +26,8 @@ npm run preview
 
 # Run frontend tests
 npm test                    # Run all frontend tests (unit + integration) 
-npm run test:unit           # Run unit tests only (fast, < 1 second)
-npm run test:unit:watch     # Watch mode for development
-npm run test:unit:ui        # Visual UI in browser
-npm run test:coverage       # Generate coverage report
-
-# Integration tests (configured but not yet functional - see docs/INTEGRATION_TESTS_STATUS.md)
-# These commands exist but tests fail due to Tauri API mocking challenges
-npm run test:integration    # Would test user flows (needs work)
-npm run test:integration:ui # Visual Playwright UI
-npm run test:integration:debug  # Step-by-step debugger
+npm run test:unit           # Unit tests
+npm run test:integration    # Integration tests
 ```
 
 ### Backend (Rust - Tauri)
@@ -79,29 +71,6 @@ cargo run --example generate_test_pdfs
 - Two main modules: `pdf_ops` and `pdf_validation`
 - Uses `printpdf` for PDF creation and `lopdf` for PDF manipulation
 
-## Testing Strategy
-
-This project uses a hybrid testing approach with comprehensive coverage:
-
-**Frontend Tests:**
-- **Unit Tests**: Test stores, utilities, and core logic in isolation
-  - Located in `src/**/__tests__/`
-- **Integration Tests:**
-  - Uses Tauri's `mockIPC` to simulate Rust backend
-  - Located in `tests/integration/`
-
-**Backend Tests:**
-- **Unit Tests**: Test PDF operations in `src/pdf_ops.rs`
-- **Integration Tests**: Test end-to-end workflows and validation
-- Located in `src-tauri/tests/`
-
-**When to Run Tests:**
-- **During development**: Run unit tests in watch mode (`npm run test:unit:watch`)
-- **Before committing**: Run all unit tests (`npm run test:unit` + `cargo test`)
-- **When changing stores/utils**: Run relevant unit tests
-- **When changing PDF operations**: Run backend tests
-- **Before releases**: Run integration tests (`npm run test:integration`) and manual testing
-
 
 See [E2E_TESTING_IMPLEMENTATION.md](./docs/E2E_TESTING_IMPLEMENTATION.md) and [INTEGRATION_TESTS_FIXED.md](./docs/INTEGRATION_TESTS_FIXED.md) for detailed documentation.
 
@@ -119,31 +88,11 @@ When creating new documentation:
 
 ### After Completing Changes
 
-**Always run tests after making changes:**
-
-**Frontend tests (for UI/TypeScript changes):**
-```bash
-npm run test:unit           # Fast unit tests (< 1 second)
-npm run test:integration    # Integration tests (3 tests, ~4 seconds)
-```
-
-**About Integration Tests:**
-- Test complete user flows (PDF loading, text annotations)
-- Use Tauri's `mockIPC` to simulate Rust backend
-- Playwright automatically starts/stops dev server
-- Run these before marking UI work complete
-
-**Backend tests (for Rust changes):**
-```bash
-cd src-tauri
-cargo test
-```
-
 **Run all tests (before marking work complete):**
 ```bash
-npm run test:unit           # Frontend unit tests (< 1 second)
-npm run test:integration    # Frontend integration tests (~4 seconds)
-cd src-tauri && cargo test  # Backend tests (~5 seconds)
+npm run test:unit
+npm run test:integration
+cd src-tauri && cargo test
 ```
 
 If tests fail, fix the issues before proceeding.
@@ -166,11 +115,8 @@ Example:
 ### Verification Checklist
 
 Before marking work as complete:
-- [ ] All frontend unit tests pass (`npm run test:unit`)
-- [ ] All integration tests pass (`npm run test:integration`)
-  - 3 tests should pass, 1 skipped
-  - Playwright starts dev server automatically
-  - Takes ~4 seconds to run
+- [ ] frontend build succeeds (`npm run build`)
+- [ ] All frontend tests pass (`npm run test`)
 - [ ] All backend tests pass (`cargo test`)
 - [ ] Manual testing completed (for UI changes, if needed)
 - [ ] `docs/IMPLEMENTATION_PLAN.md` updated

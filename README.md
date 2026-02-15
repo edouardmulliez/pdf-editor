@@ -69,48 +69,19 @@ pdf-editor/
 └── README.md              # This file
 ```
 
-## Development Status
-
-✅ **Phase 0 Complete** - Core Rust PDF capabilities validated!
-- ✅ PDF creation with text
-- ✅ Adding text to existing PDFs
-- ✅ Text extraction and verification
-- ✅ PDF validation system (catches compatibility issues)
-- ✅ 18/18 tests passing
-
-**Next Steps**: Phase 1 - PDF Rendering with PDF.js
 
 ## Testing
 
-This project has comprehensive test coverage for both backend (Rust) and frontend (TypeScript).
+### Frontend Tests
 
-### Frontend Tests (32 working + 4 configured)
-
-**Run All Frontend Tests:**
 ```bash
-npm test                    # Run unit + integration tests
+npm run test               # Run all frontend tests
+npm run test:unit          # Run unit tests
+npm run test:integration   # Run all integration tests
 ```
-
-**Unit Tests** (fast, < 1 second):
-```bash
-npm run test:unit           # Run once
-npm run test:unit:watch     # Watch mode for development
-npm run test:unit:ui        # Visual UI in browser
-npm run test:coverage       # Generate coverage report
-```
-
-**Integration Tests**:
-```bash
-npm run test:integration        # Run all integration tests
-npm run test:integration:ui     # Visual Playwright UI
-npm run test:integration:debug  # Step-by-step debugger
-```
-
-> **Note**: Uses Tauri's `mockIPC` to simulate the Rust backend. See [docs/INTEGRATION_TESTS_STATUS.md](./docs/INTEGRATION_TESTS_STATUS.md) for details.
 
 ### Backend Tests (37 tests)
 
-**Run All Backend Tests:**
 ```bash
 cd src-tauri
 cargo test
@@ -133,26 +104,14 @@ cd src-tauri
 cargo run --example generate_test_pdfs
 ```
 
-This creates 6 example PDFs in `src-tauri/` demonstrating:
-- Simple text
-- Added text (original vs modified)
-- Multiple font sizes
-- Different positions
-- Multiple lines with special characters
+This creates 6 example PDFs in `src-tauri/` demonstrating the addition of text and image annotations.
 
 ## Documentation
 
 📚 **Complete documentation in [`docs/`](./docs/)**:
 
 - **[SPEC.md](./docs/SPEC.md)** - Complete product specification
-  - Features, UI/UX, technical stack
-  - Development phases and timeline
-  - Success metrics
-
 - **[IMPLEMENTATION_PLAN.md](./docs/IMPLEMENTATION_PLAN.md)** - Detailed implementation guide
-  - 5 phases with 31 specific tasks
-  - Technical notes and code examples
-  - Risk assessment and mitigation
 
 ## Recommended IDE Setup
 
