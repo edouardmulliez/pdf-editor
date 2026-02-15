@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useAnnotationStore } from '../../stores/useAnnotationStore';
 import { useUIStore } from '../../stores/useUIStore';
-import { pdfToCanvas, canvasToPDF } from '../../utils/coordinate-converter';
+import { pdfToCanvas } from '../../utils/coordinate-converter';
 import { constrainToPageBounds } from '../../utils/bounds-checker';
 import { calculateNewSize, maintainAspectRatio, type ResizeHandle as ResizeHandleType } from '../../utils/resize-logic';
 import { ResizeHandle } from './ResizeHandle';
@@ -32,7 +32,7 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({ pageNumber, pa
   );
 
   // Drag state
-  const [dragState, setDragState] = useState<{
+  const [_dragState, setDragState] = useState<{
     isDragging: boolean;
     annotationId: string;
     startMousePos: { x: number; y: number };
@@ -40,7 +40,7 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({ pageNumber, pa
   } | null>(null);
 
   // Resize state
-  const [resizeState, setResizeState] = useState<{
+  const [_resizeState, setResizeState] = useState<{
     isResizing: boolean;
     handle: ResizeHandleType;
     annotationId: string;
@@ -53,13 +53,6 @@ export const AnnotationLayer: React.FC<AnnotationLayerProps> = ({ pageNumber, pa
   const handleAnnotationClick = (e: React.MouseEvent, id: string) => {
     e.stopPropagation(); // Prevent page click handler
     selectAnnotation(id);
-  };
-
-  const handleAnnotationDoubleClick = (e: React.MouseEvent, annotation: Annotation) => {
-    e.stopPropagation();
-    if (annotation.type === 'text') {
-      setEditingAnnotationId(annotation.id);
-    }
   };
 
   // Drag handlers

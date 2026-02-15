@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { constrainToPageBounds, isWithinBounds } from '../bounds-checker';
-import type { Position, Size } from '../../types/annotations';
+import type { Position, Size } from '../../types';
 import type { PageMetadata } from '../coordinate-converter';
 
 const createPageMetadata = (width: number, height: number): PageMetadata => ({

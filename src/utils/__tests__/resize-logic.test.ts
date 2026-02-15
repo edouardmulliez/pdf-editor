@@ -3,9 +3,8 @@ import {
   calculateNewSize,
   maintainAspectRatio,
   enforceMinimumSize,
-  type ResizeHandle,
 } from '../resize-logic';
-import type { Position, Size } from '../../types/annotations';
+import type { Position, Size } from '../../types';
 
 describe('resize-logic', () => {
   describe('calculateNewSize', () => {

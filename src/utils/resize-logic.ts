@@ -1,4 +1,4 @@
-import type { Position, Size } from '../types/annotations';
+import type { Position, Size } from '../types';
 
 export type ResizeHandle = 'tl' | 'tr' | 'bl' | 'br';
 
