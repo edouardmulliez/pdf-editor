@@ -938,6 +938,25 @@ fn apply_annotations_to_page(
                     b.into(),
                 ]));
 
+                // DEBUG: Draw blue square at annotation position
+                {
+                    let (r, g, b) = Color::BLUE.to_pdf_rgb();
+                    content.operations.push(Operation::new("RG", vec![r.into(), g.into(), b.into()]));
+                    content.operations.push(Operation::new("rg", vec![r.into(), g.into(), b.into()]));
+                    content.operations.push(Operation::new("w", vec![0.5.into()])); // line width
+                    content.operations.push(Operation::new("re", vec![
+                        ann.position.x.into(),
+                        ann.position.y.into(),
+                        5.0.into(),  // width
+                        5.0.into(),  // height
+                    ]));
+                    content.operations.push(Operation::new("B", vec![])); // fill and stroke
+
+                    // Restore text color for subsequent text drawing
+                    let (r, g, b) = text_ann.color.to_pdf_rgb();
+                    content.operations.push(Operation::new("rg", vec![r.into(), g.into(), b.into()]));
+                }
+
                 // Begin text
                 content.operations.push(Operation::new("BT", vec![]));
 

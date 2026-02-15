@@ -25,6 +25,7 @@ export const PDFViewer: React.FC = () => {
     error,
     setPageMetadata,
     getPageMetadata,
+    setMouseCoordinates,
   } = usePDFStore();
   const { activeTool, selectedFontFamily, selectedFontSize, selectedFontColor, selectedFontStyles, setEditingAnnotationId } = useUIStore();
   const { addAnnotation, selectAnnotation, selectedAnnotationId, deleteAnnotation } = useAnnotationStore();
@@ -111,6 +112,35 @@ export const PDFViewer: React.FC = () => {
 
     renderAllPages();
   }, [pdfDoc, totalPages]);
+
+  // Handle mouse move for coordinate tracking
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>, pageNumber: number) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const canvasX = Math.round(e.clientX - rect.left);
+    const canvasY = Math.round(e.clientY - rect.top);
+
+    const metadata = getPageMetadata(pageNumber);
+    if (!metadata) return;
+
+    const pdfPosition = canvasToPDF(canvasX, canvasY, metadata);
+
+    // Round PDF coordinates to tenths of points
+    const roundedPdfCoords = {
+      x: Math.round(pdfPosition.x * 10) / 10,
+      y: Math.round(pdfPosition.y * 10) / 10,
+    };
+
+    setMouseCoordinates(
+      { x: canvasX, y: canvasY },
+      roundedPdfCoords,
+      pageNumber
+    );
+  }, [getPageMetadata, setMouseCoordinates]);
+
+  // Handle mouse leave to clear coordinates
+  const handleMouseLeave = useCallback(() => {
+    setMouseCoordinates(null, null, null);
+  }, [setMouseCoordinates]);
 
   // Handle click on page for annotation placement and deselection
   const handlePageClick = useCallback(async (e: React.MouseEvent<HTMLDivElement>, pageNumber: number) => {
@@ -329,6 +359,8 @@ export const PDFViewer: React.FC = () => {
                 data-page-number={page.pageNumber}
                 data-testid={`pdf-page-${page.pageNumber}`}
                 onClick={(e) => handlePageClick(e, page.pageNumber)}
+                onMouseMove={(e) => handleMouseMove(e, page.pageNumber)}
+                onMouseLeave={handleMouseLeave}
               >
                 <div
                   ref={(el) => {

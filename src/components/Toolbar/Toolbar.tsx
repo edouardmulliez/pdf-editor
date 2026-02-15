@@ -1,6 +1,7 @@
 import React from 'react';
 import { useUIStore } from '../../stores/useUIStore';
 import { usePDFStore } from '../../stores/usePDFStore';
+import { useAnnotationStore } from '../../stores/useAnnotationStore';
 import { Tool } from '../../types';
 
 const FONT_FAMILIES = ['Arial', 'Times New Roman', 'Courier New', 'Helvetica', 'Georgia'];
@@ -20,12 +21,38 @@ export const Toolbar: React.FC = () => {
     toggleFontStyle,
   } = useUIStore();
   const pdfDoc = usePDFStore((state) => state.document);
+  const annotations = useAnnotationStore((state) => state.annotations);
 
   const isTextTool = activeTool === 'text';
 
   const handleToolClick = (tool: Tool) => {
     if (!pdfDoc) return;
     setActiveTool(activeTool === tool ? null : tool);
+  };
+
+  const handleDebugAnnotations = () => {
+    console.group(`📍 Debug Annotations (${annotations.length} total)`);
+    annotations.forEach((ann, index) => {
+      console.group(`Annotation ${index + 1}: ${ann.type} (ID: ${ann.id})`);
+      console.log('Position:', ann.position);
+      console.log('Size:', ann.size);
+      console.log('Page:', ann.pageNumber);
+
+      if (ann.type === 'text') {
+        console.log('Content:', ann.content);
+        console.log('Font Family:', ann.fontFamily);
+        console.log('Font Size:', ann.fontSize);
+        console.log('Font Color:', ann.fontColor);
+        console.log('Font Styles:', ann.fontStyles);
+        console.log('Font Metrics:', ann.fontMetrics);
+      } else if (ann.type === 'image') {
+        console.log('Image Format:', ann.imageFormat);
+        console.log('Image Data Length:', ann.imageData.length);
+      }
+
+      console.groupEnd();
+    });
+    console.groupEnd();
   };
 
   return (
@@ -87,6 +114,22 @@ export const Toolbar: React.FC = () => {
         >
           <svg className="w-5 h-5" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
             <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+
+        <button
+          data-testid="debug-annotations-button"
+          disabled={!pdfDoc || annotations.length === 0}
+          onClick={handleDebugAnnotations}
+          className={`p-2 rounded transition-colors ${
+            !pdfDoc || annotations.length === 0
+              ? 'opacity-50 cursor-not-allowed text-gray-400'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+          title={`Debug Annotations (${annotations.length})`}
+        >
+          <svg className="w-5 h-5" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </button>
       </div>

@@ -12,6 +12,9 @@ interface PDFState {
   error: string | null;
   successMessage: string | null;
   pageMetadata: Map<number, PageMetadata>;
+  mouseCanvasCoords: { x: number; y: number } | null;
+  mousePdfCoords: { x: number; y: number } | null;
+  currentMousePage: number | null;
 
   // Actions
   setDocument: (
@@ -27,6 +30,11 @@ interface PDFState {
   setSuccessMessage: (message: string | null) => void;
   setPageMetadata: (pageNumber: number, metadata: PageMetadata) => void;
   getPageMetadata: (pageNumber: number) => PageMetadata | undefined;
+  setMouseCoordinates: (
+    canvasCoords: { x: number; y: number } | null,
+    pdfCoords: { x: number; y: number } | null,
+    pageNumber: number | null
+  ) => void;
 }
 
 export const usePDFStore = create<PDFState>((set, get) => ({
@@ -39,6 +47,9 @@ export const usePDFStore = create<PDFState>((set, get) => ({
   error: null,
   successMessage: null,
   pageMetadata: new Map(),
+  mouseCanvasCoords: null,
+  mousePdfCoords: null,
+  currentMousePage: null,
 
   setDocument: (document, fileName, filePath, totalPages) =>
     set({
@@ -85,4 +96,11 @@ export const usePDFStore = create<PDFState>((set, get) => ({
   getPageMetadata: (pageNumber) => {
     return get().pageMetadata.get(pageNumber);
   },
+
+  setMouseCoordinates: (canvasCoords, pdfCoords, pageNumber) =>
+    set({
+      mouseCanvasCoords: canvasCoords,
+      mousePdfCoords: pdfCoords,
+      currentMousePage: pageNumber,
+    }),
 }));

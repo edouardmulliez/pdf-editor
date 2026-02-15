@@ -3,7 +3,7 @@ import { usePDFStore } from '../../stores/usePDFStore';
 import { useUIStore } from '../../stores/useUIStore';
 
 export const StatusBar: React.FC = () => {
-  const { fileName, currentPage, totalPages, error, successMessage, setError, setSuccessMessage } = usePDFStore();
+  const { fileName, currentPage, totalPages, error, successMessage, setError, setSuccessMessage, mouseCanvasCoords, mousePdfCoords } = usePDFStore();
   const { zoomLevel } = useUIStore();
 
   // Auto-dismiss success message after 3 seconds
@@ -62,7 +62,12 @@ export const StatusBar: React.FC = () => {
         </span>
       </div>
 
-      <div className="text-gray-600">
+      <div className="flex items-center space-x-4 text-gray-600">
+        {mouseCanvasCoords && mousePdfCoords && (
+          <span data-testid="status-coordinates" className="text-xs">
+            Canvas: ({mouseCanvasCoords.x}, {mouseCanvasCoords.y}) px | PDF: ({mousePdfCoords.x}, {mousePdfCoords.y}) pt
+          </span>
+        )}
         <span>{zoomLevel}%</span>
       </div>
     </footer>
