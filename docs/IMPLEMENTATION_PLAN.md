@@ -454,6 +454,18 @@ Users can now:
 
 ---
 
+## Phase 6
+
+- implement the possibility to export only the annotations as pdf.
+- Implement zoom
+- Change image UX (when user click on image tool, should open file selector first and then place image on screen. Then user can move it if he wants to.)
+- change mouse pointers (normal if not over an annotation, pointer to move if on top of annotation)
+- update the text bounding box to match the text inside it. Maybe avoid displaying it when in edit mode. Just display it when we
+select a text to move it.
+- when in text edit, do not interpret backspace as "delete the annotation".
+
+---
+
 ## Implementation Status
 
 | Phase | Status |
@@ -505,17 +517,7 @@ Users can now:
 
 ---
 
-## Risk Mitigation
 
-**Mitigated by Phase 0:**
-- ✅ Export quality validated with tests
-- ✅ Rust PDF library capabilities confirmed
-- ✅ Coordinate transformations proven
-
-**Remaining Risks:**
-- **PDF.js Integration**: Mitigate with early testing
-- **Performance**: Mitigate with profiling
-- **Cross-platform**: Test on both platforms regularly
 
 ---
 
