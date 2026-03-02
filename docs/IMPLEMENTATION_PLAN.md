@@ -128,7 +128,7 @@ apply_annotations_to_file("in.pdf", "out.pdf", &annotations)?;
 7. ✅ **Status Bar Updates**
    - Displays document filename
    - Current page / total pages indicator
-   - Zoom level display (placeholder)
+   - Zoom level display (live, wired to zoom state)
    - Responsive layout
 
 ### Technical Implementation
@@ -428,9 +428,11 @@ Users can now:
    - Tool shortcuts (T, I, V)
    - Delete/ESC
 
-2. **Zoom Display**
-   - Show current zoom percentage
-   - Update on resize
+2. ✅ **Zoom Controls**
+   - Toolbar: −/+/fit buttons with zoom% display
+   - MacOS trackpad pinch (ctrlKey + wheel, debounced 150ms)
+   - Keyboard shortcuts: Cmd+= zoom in, Cmd+- zoom out, Cmd+0 fit
+   - Pages re-render at `fitScale × (zoomLevel / 100)`; annotations auto-adapt via `pageMetadata.scale`
 
 3. **Error Handling**
    - Error boundaries
@@ -457,7 +459,7 @@ Users can now:
 ## Phase 6
 
 - implement the possibility to export only the annotations as pdf.
-- Implement zoom
+- ✅ Implement zoom
 - Change image UX (when user click on image tool, should open file selector first and then place image on screen. Then user can move it if he wants to.)
 - change mouse pointers (normal if not over an annotation, pointer to move if on top of annotation)
 - update the text bounding box to match the text inside it. Maybe avoid displaying it when in edit mode. Just display it when we
