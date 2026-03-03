@@ -47,6 +47,11 @@ export const PDFViewer: React.FC = () => {
   const fitScaleRef = useRef<number>(0);
   const zoomTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const zoomLevelRef = useRef<number>(100);
+  // pagesInnerRef: the div that holds all page cards — we apply CSS scale here for smooth pinch feedback
+  const pagesInnerRef = useRef<HTMLDivElement>(null);
+  // renderedZoomRef: the zoom level at which pages are actually rendered (canvas pixels); used to
+  // compute the CSS scale = targetZoom / renderedZoom during a gesture
+  const renderedZoomRef = useRef<number>(100);
 
   // Keep zoomLevelRef in sync to avoid stale closures in event handlers
   useEffect(() => { zoomLevelRef.current = zoomLevel; }, [zoomLevel]);
@@ -148,6 +153,13 @@ export const PDFViewer: React.FC = () => {
     };
   }, [zoomLevel, pdfDoc, renderPages]);
 
+  // After each canvas re-render, reset CSS scale (pages are now natively the right size)
+  // and record the new rendered zoom so future pinch gestures have the correct baseline.
+  useEffect(() => {
+    if (pagesInnerRef.current) pagesInnerRef.current.style.transform = '';
+    renderedZoomRef.current = zoomLevelRef.current;
+  }, [renderedPages]);
+
   // Trackpad pinch zoom (ctrlKey + wheel on macOS)
   // Attached to window so the listener is always active regardless of render state.
   // (Attaching to pagesContainerRef fails: the container isn't mounted until after a
@@ -156,8 +168,19 @@ export const PDFViewer: React.FC = () => {
     const onWheel = (e: WheelEvent) => {
       if (!e.ctrlKey) return;
       e.preventDefault();
-      const delta = -e.deltaY * 0.8;
-      setZoomLevel(Math.round(zoomLevelRef.current + delta));
+
+      // Clamp and update zoomLevelRef immediately (ahead of state) so successive
+      // wheel events accumulate correctly without waiting for a React re-render.
+      const newZoom = Math.max(25, Math.min(300, Math.round(zoomLevelRef.current + (-e.deltaY))));
+      zoomLevelRef.current = newZoom;
+      setZoomLevel(newZoom); // triggers debounced canvas re-render
+
+      // Apply CSS scale instantly for smooth visual feedback — GPU-accelerated, free.
+      // scale = targetZoom / renderedZoom so the pages appear at the right visual size.
+      if (pagesInnerRef.current && renderedZoomRef.current > 0) {
+        pagesInnerRef.current.style.transform = `scale(${newZoom / renderedZoomRef.current})`;
+        pagesInnerRef.current.style.transformOrigin = 'top center';
+      }
     };
 
     window.addEventListener('wheel', onWheel, { passive: false });
@@ -400,7 +423,7 @@ export const PDFViewer: React.FC = () => {
   return (
     <div ref={containerRef} data-testid="pdf-viewer" className="flex-1 flex flex-col bg-gray-100">
       <div ref={pagesContainerRef} className="flex-1 overflow-auto p-8">
-        <div className="flex flex-col items-center space-y-6">
+        <div ref={pagesInnerRef} className="flex flex-col items-center space-y-6">
           {renderedPages.map((page) => {
             const metadata = getPageMetadata(page.pageNumber);
             return (
