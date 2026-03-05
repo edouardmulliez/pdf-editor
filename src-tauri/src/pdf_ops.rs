@@ -1089,6 +1089,102 @@ pub fn apply_annotations_to_file(
     Ok(())
 }
 
+/// Creates a new PDF containing only the annotations, with blank pages matching the
+/// original PDF's page count and dimensions. No original PDF content is included.
+///
+/// # Arguments
+/// * `input_path` - Path to the original PDF (used for page dimensions only)
+/// * `output_path` - Path where the annotations-only PDF will be saved
+/// * `annotations` - Annotations to apply to the new document
+pub fn create_annotations_only_pdf(
+    input_path: &str,
+    output_path: &str,
+    annotations: &[Annotation],
+) -> Result<(), Box<dyn std::error::Error>> {
+    // Load original to extract page dimensions
+    let original_doc = Document::load(input_path)
+        .map_err(|e| format!("Failed to load original PDF: {}", e))?;
+
+    let original_pages: Vec<_> = original_doc.page_iter().collect();
+
+    // Collect MediaBox for each page (fallback to A4 if missing)
+    let mut page_dimensions: Vec<[f32; 4]> = Vec::new();
+    for page_id in &original_pages {
+        let dims = original_doc
+            .get_object(*page_id)
+            .ok()
+            .and_then(|o| o.as_dict().ok())
+            .and_then(|d| d.get(b"MediaBox").ok())
+            .and_then(|mb| mb.as_array().ok())
+            .and_then(|arr| {
+                if arr.len() < 4 {
+                    return None;
+                }
+                let vals: Vec<f32> = arr.iter().map(|o| match o {
+                    Object::Integer(i) => *i as f32,
+                    Object::Real(f) => *f,
+                    _ => 0.0,
+                }).collect();
+                Some([vals[0], vals[1], vals[2], vals[3]])
+            })
+            .unwrap_or([0.0, 0.0, 595.0, 842.0]);
+        page_dimensions.push(dims);
+    }
+
+    // Build a new blank document
+    let mut new_doc = Document::with_version("1.4");
+
+    // Reserve an ObjectId for the Pages node by inserting a placeholder
+    let pages_id = new_doc.add_object(Object::Null);
+
+    // Create blank pages
+    let mut page_ids: Vec<lopdf::ObjectId> = Vec::new();
+    for dims in &page_dimensions {
+        let content_stream = Stream::new(Dictionary::new(), b"".to_vec());
+        let content_id = new_doc.add_object(content_stream);
+
+        let mut page_dict = Dictionary::new();
+        page_dict.set("Type", Object::Name(b"Page".to_vec()));
+        page_dict.set("Parent", Object::Reference(pages_id));
+        page_dict.set("MediaBox", Object::Array(vec![
+            Object::Real(dims[0] as f32),
+            Object::Real(dims[1] as f32),
+            Object::Real(dims[2] as f32),
+            Object::Real(dims[3] as f32),
+        ]));
+        page_dict.set("Contents", Object::Reference(content_id));
+        page_dict.set("Resources", Object::Dictionary(Dictionary::new()));
+        let page_id = new_doc.add_object(page_dict);
+        page_ids.push(page_id);
+    }
+
+    // Replace the placeholder with the real Pages dictionary
+    let mut pages_dict = Dictionary::new();
+    pages_dict.set("Type", Object::Name(b"Pages".to_vec()));
+    pages_dict.set(
+        "Kids",
+        Object::Array(page_ids.iter().map(|&id| Object::Reference(id)).collect()),
+    );
+    pages_dict.set("Count", Object::Integer(page_ids.len() as i64));
+    new_doc.objects.insert(pages_id, Object::Dictionary(pages_dict));
+
+    // Set up catalog
+    let mut catalog = Dictionary::new();
+    catalog.set("Type", Object::Name(b"Catalog".to_vec()));
+    catalog.set("Pages", Object::Reference(pages_id));
+    let catalog_id = new_doc.add_object(catalog);
+    new_doc.trailer.set("Root", Object::Reference(catalog_id));
+
+    // Apply annotations onto the blank pages
+    apply_annotations(&mut new_doc, annotations)?;
+
+    new_doc.save(output_path)
+        .map_err(|e| format!("Failed to save annotations-only PDF: {}", e))?;
+
+    println!("✅ Created annotations-only PDF: {} -> {}", input_path, output_path);
+    Ok(())
+}
+
 /// Creates a new PDF with text at specified coordinates
 ///
 /// # Arguments

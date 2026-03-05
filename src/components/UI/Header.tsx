@@ -4,12 +4,14 @@ import { usePDFStore } from '../../stores/usePDFStore';
 interface HeaderProps {
   onOpenFile: () => void;
   onExport: () => void;
+  onExportAnnotationsOnly: () => void;
   hasDocument: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onOpenFile,
   onExport,
+  onExportAnnotationsOnly,
   hasDocument,
 }) => {
   const { toggleSidebar, sidebarVisible } = useUIStore();
@@ -65,6 +67,20 @@ export const Header: React.FC<HeaderProps> = ({
           className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm"
         >
           Open PDF
+        </button>
+        <button
+          onClick={onExportAnnotationsOnly}
+          disabled={!hasDocument || isLoading}
+          className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+        >
+          {isLoading ? (
+            <>
+              <SpinnerIcon className="animate-spin mr-2" />
+              Exporting...
+            </>
+          ) : (
+            'Export Annotations Only'
+          )}
         </button>
         <button
           onClick={onExport}

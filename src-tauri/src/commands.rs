@@ -1,5 +1,5 @@
 use crate::file_ops::{read_pdf_file, PdfFileData};
-use crate::pdf_ops::{apply_annotations_to_file, Annotation};
+use crate::pdf_ops::{apply_annotations_to_file, create_annotations_only_pdf, Annotation};
 use tauri::AppHandle;
 
 /// Opens a file dialog to select a PDF file and returns its data.
@@ -70,4 +70,32 @@ pub async fn export_pdf(
 
     // Return success message
     Ok(format!("Successfully exported PDF to {}", output_path))
+}
+
+/// Exports a new PDF containing only the annotations (no original PDF content).
+/// Page count and dimensions match the original PDF.
+///
+/// # Arguments
+///
+/// * `input_path` - Path to the source PDF (used for page dimensions)
+/// * `output_path` - Path where the annotations-only PDF will be saved
+/// * `annotations_json` - JSON string containing array of annotations
+///
+/// # Returns
+///
+/// * `Ok(String)` - Success message with output path
+/// * `Err(String)` - Error message if deserialization or export fails
+#[tauri::command]
+pub async fn export_annotations_only(
+    input_path: String,
+    output_path: String,
+    annotations_json: String,
+) -> Result<String, String> {
+    let annotations: Vec<Annotation> = serde_json::from_str(&annotations_json)
+        .map_err(|e| format!("Invalid annotation data: {}", e))?;
+
+    create_annotations_only_pdf(&input_path, &output_path, &annotations)
+        .map_err(|e| format!("Export failed: {}", e))?;
+
+    Ok(format!("Successfully exported annotations-only PDF to {}", output_path))
 }

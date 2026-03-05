@@ -103,11 +103,57 @@ function App() {
     }
   };
 
+  const handleExportAnnotationsOnly = async () => {
+    try {
+      const { document: pdfDoc, fileName, filePath, setLoading, setError, setSuccessMessage } = usePDFStore.getState();
+
+      if (!pdfDoc || !filePath) {
+        setError('No PDF loaded');
+        return;
+      }
+
+      const annotations = useAnnotationStore.getState().annotations;
+
+      const defaultFilename = fileName
+        ? fileName.replace(/\.pdf$/i, '') + '-annotations-only.pdf'
+        : 'annotations-only.pdf';
+
+      const savePath = await save({
+        defaultPath: defaultFilename,
+        filters: [{ name: 'PDF', extensions: ['pdf'] }]
+      });
+
+      if (!savePath) return;
+
+      setLoading(true);
+
+      const rustAnnotations = transformAnnotationsForRust(annotations);
+      const annotationsJson = JSON.stringify(rustAnnotations);
+
+      await invoke<string>('export_annotations_only', {
+        inputPath: filePath,
+        outputPath: savePath,
+        annotationsJson,
+      });
+
+      const filename = savePath.split('/').pop() || 'file.pdf';
+      setSuccessMessage(`Exported annotations to ${filename}`);
+
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Export failed';
+      usePDFStore.getState().setError(message);
+      console.error('Export annotations only error:', error);
+    } finally {
+      usePDFStore.getState().setLoading(false);
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col overflow-hidden">
       <Header
         onOpenFile={handleOpenFile}
         onExport={handleExport}
+        onExportAnnotationsOnly={handleExportAnnotationsOnly}
         hasDocument={pdfDoc !== null}
       />
 
