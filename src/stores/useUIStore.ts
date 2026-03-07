@@ -23,6 +23,7 @@ interface UIState {
   setSelectedFontSize: (size: number) => void;
   setSelectedFontColor: (color: string) => void;
   toggleFontStyle: (style: 'bold' | 'italic' | 'underline') => void;
+  setSelectedFontStyles: (styles: Set<'bold' | 'italic' | 'underline'>) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -64,4 +65,6 @@ export const useUIStore = create<UIState>((set) => ({
       }
       return { selectedFontStyles: newStyles };
     }),
+
+  setSelectedFontStyles: (styles) => set({ selectedFontStyles: styles }),
 }));

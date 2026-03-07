@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useUIStore } from '../../stores/useUIStore';
 import { usePDFStore } from '../../stores/usePDFStore';
 import { useAnnotationStore } from '../../stores/useAnnotationStore';
-import { Tool } from '../../types';
+import { Tool, TextAnnotation } from '../../types';
 
 const FONT_FAMILIES = ['Arial', 'Times New Roman', 'Courier New', 'Helvetica', 'Georgia'];
 const FONT_SIZES = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 72];
@@ -18,14 +18,50 @@ export const Toolbar: React.FC = () => {
     setSelectedFontFamily,
     setSelectedFontSize,
     setSelectedFontColor,
+    setSelectedFontStyles,
     toggleFontStyle,
     zoomLevel,
     setZoomLevel,
+    editingAnnotationId,
   } = useUIStore();
   const pdfDoc = usePDFStore((state) => state.document);
-  const annotations = useAnnotationStore((state) => state.annotations);
+  const { annotations, updateAnnotation, selectedAnnotationId } = useAnnotationStore();
+
+  const selectedAnnotation = annotations.find((a) => a.id === selectedAnnotationId);
+  const selectedTextAnnotation = selectedAnnotation?.type === 'text' ? (selectedAnnotation as TextAnnotation) : null;
 
   const isTextTool = activeTool === 'text';
+  const isTextFormattingVisible = isTextTool || selectedTextAnnotation !== null || editingAnnotationId !== null;
+
+  useEffect(() => {
+    const targetId = selectedAnnotationId || editingAnnotationId;
+    if (!targetId) return;
+    const ann = annotations.find((a) => a.id === targetId);
+    if (ann?.type === 'text') {
+      setSelectedFontFamily(ann.fontFamily);
+      setSelectedFontSize(ann.fontSize);
+      setSelectedFontColor(ann.fontColor);
+      setSelectedFontStyles(new Set(ann.fontStyles));
+    }
+  }, [selectedAnnotationId, editingAnnotationId]);
+
+  const applyToSelectedAnnotation = (updates: Partial<TextAnnotation>) => {
+    const targetId = selectedAnnotationId || editingAnnotationId;
+    if (!targetId) return;
+    const ann = annotations.find((a) => a.id === targetId);
+    if (ann?.type !== 'text') return;
+
+    if (updates.fontFamily !== undefined || updates.fontSize !== undefined) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+      const family = updates.fontFamily ?? ann.fontFamily;
+      const size = updates.fontSize ?? ann.fontSize;
+      ctx.font = `${size}px ${family}`;
+      const m = ctx.measureText(ann.content || 'Ag');
+      updates.fontMetrics = { ascent: m.actualBoundingBoxAscent, descent: m.actualBoundingBoxDescent };
+    }
+    updateAnnotation(targetId, updates);
+  };
 
   const handleToolClick = (tool: Tool) => {
     if (!pdfDoc) return;
@@ -185,14 +221,14 @@ export const Toolbar: React.FC = () => {
         </button>
       </div>
 
-      {/* Text Formatting Controls - Only visible when text tool is active */}
-      {isTextTool && (
+      {/* Text Formatting Controls - Visible when text tool active or text annotation selected/editing */}
+      {isTextFormattingVisible && (
         <div className="flex items-center space-x-3 border-t border-gray-200 pt-2">
           <div className="flex items-center space-x-2">
             <label className="text-sm text-gray-600">Font:</label>
             <select
               value={selectedFontFamily}
-              onChange={(e) => setSelectedFontFamily(e.target.value)}
+              onChange={(e) => { setSelectedFontFamily(e.target.value); applyToSelectedAnnotation({ fontFamily: e.target.value }); }}
               className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               {FONT_FAMILIES.map((font) => (
@@ -207,7 +243,7 @@ export const Toolbar: React.FC = () => {
             <label className="text-sm text-gray-600">Size:</label>
             <select
               value={selectedFontSize}
-              onChange={(e) => setSelectedFontSize(Number(e.target.value))}
+              onChange={(e) => { const n = Number(e.target.value); setSelectedFontSize(n); applyToSelectedAnnotation({ fontSize: n }); }}
               className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               {FONT_SIZES.map((size) => (
@@ -220,7 +256,12 @@ export const Toolbar: React.FC = () => {
 
           <div className="flex items-center space-x-1">
             <button
-              onClick={() => toggleFontStyle('bold')}
+              onClick={() => {
+                toggleFontStyle('bold');
+                const next = new Set(selectedFontStyles);
+                next.has('bold') ? next.delete('bold') : next.add('bold');
+                applyToSelectedAnnotation({ fontStyles: [...next] });
+              }}
               className={`p-1.5 rounded hover:bg-gray-100 transition-colors ${
                 selectedFontStyles.has('bold') ? 'bg-primary-100 text-primary-700' : 'text-gray-700'
               }`}
@@ -230,7 +271,12 @@ export const Toolbar: React.FC = () => {
             </button>
 
             <button
-              onClick={() => toggleFontStyle('italic')}
+              onClick={() => {
+                toggleFontStyle('italic');
+                const next = new Set(selectedFontStyles);
+                next.has('italic') ? next.delete('italic') : next.add('italic');
+                applyToSelectedAnnotation({ fontStyles: [...next] });
+              }}
               className={`p-1.5 rounded hover:bg-gray-100 transition-colors ${
                 selectedFontStyles.has('italic') ? 'bg-primary-100 text-primary-700' : 'text-gray-700'
               }`}
@@ -240,7 +286,12 @@ export const Toolbar: React.FC = () => {
             </button>
 
             <button
-              onClick={() => toggleFontStyle('underline')}
+              onClick={() => {
+                toggleFontStyle('underline');
+                const next = new Set(selectedFontStyles);
+                next.has('underline') ? next.delete('underline') : next.add('underline');
+                applyToSelectedAnnotation({ fontStyles: [...next] });
+              }}
               className={`p-1.5 rounded hover:bg-gray-100 transition-colors ${
                 selectedFontStyles.has('underline') ? 'bg-primary-100 text-primary-700' : 'text-gray-700'
               }`}
@@ -255,7 +306,7 @@ export const Toolbar: React.FC = () => {
             <input
               type="color"
               value={selectedFontColor}
-              onChange={(e) => setSelectedFontColor(e.target.value)}
+              onChange={(e) => { setSelectedFontColor(e.target.value); applyToSelectedAnnotation({ fontColor: e.target.value }); }}
               className="w-8 h-8 rounded border border-gray-300 cursor-pointer"
             />
           </div>
