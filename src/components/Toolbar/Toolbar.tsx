@@ -2,7 +2,9 @@ import React, { useEffect } from 'react';
 import { useUIStore } from '../../stores/useUIStore';
 import { usePDFStore } from '../../stores/usePDFStore';
 import { useAnnotationStore } from '../../stores/useAnnotationStore';
-import { Tool, TextAnnotation } from '../../types';
+import { Tool, TextAnnotation, ImageAnnotation } from '../../types';
+import { openImageDialog } from '../../utils/image-loader';
+import { generateId } from '../../utils/id-generator';
 
 const FONT_FAMILIES = ['Arial', 'Times New Roman', 'Courier New', 'Helvetica', 'Georgia'];
 const FONT_SIZES = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 72];
@@ -24,8 +26,8 @@ export const Toolbar: React.FC = () => {
     setZoomLevel,
     editingAnnotationId,
   } = useUIStore();
-  const pdfDoc = usePDFStore((state) => state.document);
-  const { annotations, updateAnnotation, selectedAnnotationId } = useAnnotationStore();
+  const { document: pdfDoc, currentPage, getPageMetadata } = usePDFStore();
+  const { annotations, updateAnnotation, selectedAnnotationId, addAnnotation, selectAnnotation } = useAnnotationStore();
 
   const selectedAnnotation = annotations.find((a) => a.id === selectedAnnotationId);
   const selectedTextAnnotation = selectedAnnotation?.type === 'text' ? (selectedAnnotation as TextAnnotation) : null;
@@ -61,6 +63,31 @@ export const Toolbar: React.FC = () => {
       updates.fontMetrics = { ascent: m.actualBoundingBoxAscent, descent: m.actualBoundingBoxDescent };
     }
     updateAnnotation(targetId, updates);
+  };
+
+  const handleImageButtonClick = async () => {
+    if (!pdfDoc) return;
+    const imageData = await openImageDialog();
+    if (!imageData) return;
+    const metadata = getPageMetadata(currentPage);
+    if (!metadata) return;
+    const aspectRatio = imageData.naturalHeight / imageData.naturalWidth;
+    const defaultWidth = 150;
+    const defaultHeight = defaultWidth * aspectRatio;
+    const annotation: ImageAnnotation = {
+      id: generateId(),
+      type: 'image',
+      pageNumber: currentPage,
+      position: {
+        x: metadata.viewportWidth / 2 - defaultWidth / 2,
+        y: metadata.viewportHeight / 2 + defaultHeight / 2,
+      },
+      imageData: imageData.data,
+      imageFormat: imageData.format,
+      size: { width: defaultWidth, height: defaultHeight },
+    };
+    addAnnotation(annotation);
+    selectAnnotation(annotation.id);
   };
 
   const handleToolClick = (tool: Tool) => {
@@ -128,13 +155,12 @@ export const Toolbar: React.FC = () => {
 
         <button
           data-testid="image-tool-button"
-          onClick={() => handleToolClick('image')}
+          onClick={handleImageButtonClick}
           disabled={!pdfDoc}
           className={`p-2 rounded transition-colors ${
-            !pdfDoc ? 'opacity-50 cursor-not-allowed text-gray-400' :
-            activeTool === 'image' ? 'bg-primary-100 text-primary-700' : 'text-gray-700 hover:bg-gray-100'
+            !pdfDoc ? 'opacity-50 cursor-not-allowed text-gray-400' : 'text-gray-700 hover:bg-gray-100'
           }`}
-          title="Image Tool"
+          title="Insert Image"
         >
           <svg className="w-5 h-5" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
             <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />

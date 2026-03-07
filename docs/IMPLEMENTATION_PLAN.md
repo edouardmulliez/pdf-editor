@@ -462,7 +462,7 @@ Users can now:
 - ✅ Implement zoom
 - ✅ add capability to change font size after it is added
 - ✅ remove the blue debugging squares
-- Change image UX (when user click on image tool, should open file selector first and then place image on screen. Then user can move it if he wants to.)
+- ✅ Change image UX (when user click on image tool, should open file selector first and then place image on screen. Then user can move it if he wants to.)
 - change mouse pointers (normal if not over an annotation, pointer to move if on top of annotation)
 - update the text bounding box to match the text inside it. Maybe avoid displaying it when in edit mode. Just display it when we
 select a text to move it.

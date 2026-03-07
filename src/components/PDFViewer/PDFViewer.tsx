@@ -5,10 +5,9 @@ import { useAnnotationStore } from '../../stores/useAnnotationStore';
 import { renderPageToCanvas, calculateFitScale } from '../../utils/pdf-renderer';
 import { canvasToPDF } from '../../utils/coordinate-converter';
 import { generateId } from '../../utils/id-generator';
-import { openImageDialog } from '../../utils/image-loader';
 import { AnnotationLayer } from '../AnnotationLayer/AnnotationLayer';
 import type { PageMetadata } from '../../utils/coordinate-converter';
-import type { TextAnnotation, ImageAnnotation } from '../../types';
+import type { TextAnnotation } from '../../types';
 
 interface RenderedPage {
   pageNumber: number;
@@ -217,7 +216,7 @@ export const PDFViewer: React.FC = () => {
   }, [setMouseCoordinates]);
 
   // Handle click on page for annotation placement and deselection
-  const handlePageClick = useCallback(async (e: React.MouseEvent<HTMLDivElement>, pageNumber: number) => {
+  const handlePageClick = useCallback((e: React.MouseEvent<HTMLDivElement>, pageNumber: number) => {
     // If no active tool and target is the page wrapper, deselect annotation
     if (!activeTool && e.target === e.currentTarget) {
       selectAnnotation(null);
@@ -264,35 +263,6 @@ export const PDFViewer: React.FC = () => {
 
       addAnnotation(annotation);
       setEditingAnnotationId(annotation.id);
-    } else if (activeTool === 'image') {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const canvasX = e.clientX - rect.left;
-      const canvasY = e.clientY - rect.top;
-
-      const metadata = getPageMetadata(pageNumber);
-      if (!metadata) return;
-
-      const pdfPosition = canvasToPDF(canvasX, canvasY, metadata);
-
-      const imageData = await openImageDialog();
-      if (!imageData) return;
-
-      const aspectRatio = imageData.naturalHeight / imageData.naturalWidth;
-      const defaultWidth = 150;
-      const defaultHeight = defaultWidth * aspectRatio;
-
-      const annotation: ImageAnnotation = {
-        id: generateId(),
-        type: 'image',
-        pageNumber,
-        position: pdfPosition,
-        imageData: imageData.data,
-        imageFormat: imageData.format,
-        size: { width: defaultWidth, height: defaultHeight },
-      };
-
-      addAnnotation(annotation);
-      selectAnnotation(annotation.id);
     }
   }, [activeTool, getPageMetadata, selectedFontFamily, selectedFontSize, selectedFontColor, selectedFontStyles, addAnnotation, setEditingAnnotationId, selectAnnotation]);
 
