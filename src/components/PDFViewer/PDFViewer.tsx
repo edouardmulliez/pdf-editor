@@ -33,6 +33,7 @@ export const PDFViewer: React.FC = () => {
     selectedFontSize,
     selectedFontColor,
     selectedFontStyles,
+    editingAnnotationId,
     setEditingAnnotationId,
     zoomLevel,
     setZoomLevel,
@@ -329,7 +330,7 @@ export const PDFViewer: React.FC = () => {
   // Keyboard shortcuts: Delete/Backspace for annotations, Cmd+=/−/0 for zoom
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedAnnotationId) {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedAnnotationId && !editingAnnotationId) {
         e.preventDefault();
         deleteAnnotation(selectedAnnotationId);
       }
@@ -351,7 +352,7 @@ export const PDFViewer: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedAnnotationId, deleteAnnotation, setZoomLevel]);
+  }, [selectedAnnotationId, editingAnnotationId, deleteAnnotation, setZoomLevel]);
 
   if (isLoading) {
     return (

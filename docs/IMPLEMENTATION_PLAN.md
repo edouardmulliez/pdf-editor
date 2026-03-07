@@ -466,7 +466,7 @@ Users can now:
 - change mouse pointers (normal if not over an annotation, pointer to move if on top of annotation)
 - update the text bounding box to match the text inside it. Maybe avoid displaying it when in edit mode. Just display it when we
 select a text to move it.
-- when in text edit, do not interpret backspace as "delete the annotation".
+- ✅ when in text edit, do not interpret backspace as "delete the annotation".
 
 ---
 
