@@ -467,6 +467,9 @@ Users can now:
 - update the text bounding box to match the text inside it. Maybe avoid displaying it when in edit mode. Just display it when we
 select a text to move it.
 - ✅ when in text edit, do not interpret backspace as "delete the annotation".
+- check exports with accents
+- ensure an image can be inserted at the top of the document
+- check with PDFs from Ksyusha. 
 
 ---
 
