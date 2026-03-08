@@ -34,6 +34,13 @@ export function constrainToPageBounds(
     maxY = pageHeight - fontMetrics.descent;  // Must leave room for descent
   }
 
+  // For image: position.y is top-left corner in PDF space (Y increases upward)
+  // Top edge must be <= pageHeight; bottom edge (position.y - height) must be >= 0
+  if (annotationType === 'image') {
+    minY = size.height;  // bottom edge: position.y - height >= 0
+    maxY = pageHeight;   // top edge: position.y <= pageHeight
+  }
+
   return {
     x: Math.max(minX, Math.min(maxX, position.x)),
     y: Math.max(minY, Math.min(maxY, position.y)),
@@ -50,10 +57,20 @@ export function constrainToPageBounds(
 export function isWithinBounds(
   position: Position,
   size: Size,
-  pageMetadata: PageMetadata
+  pageMetadata: PageMetadata,
+  annotationType?: 'text' | 'image'
 ): boolean {
   const pageWidth = pageMetadata.viewportWidth;
   const pageHeight = pageMetadata.viewportHeight;
+
+  if (annotationType === 'image') {
+    return (
+      position.x >= 0 &&
+      position.x + size.width <= pageWidth &&
+      position.y - size.height >= 0 &&
+      position.y <= pageHeight
+    );
+  }
 
   return (
     position.x >= 0 &&
