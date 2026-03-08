@@ -41,35 +41,6 @@ npm run tauri dev
 npm run tauri build
 ```
 
-## Project Structure
-
-```
-pdf-editor/
-├── src/                     # React frontend
-│   ├── components/         # UI components
-│   │   ├── PDFViewer/     # PDF rendering
-│   │   ├── Toolbar/       # Tool selection & formatting
-│   │   ├── Sidebar/       # Page navigation
-│   │   ├── AnnotationLayer/ # Annotation rendering
-│   │   └── UI/            # Header, StatusBar
-│   ├── stores/            # Zustand state management
-│   ├── types/             # TypeScript types
-│   └── utils/             # Helper functions
-├── src-tauri/             # Rust backend
-│   ├── src/
-│   │   ├── pdf_ops.rs     # PDF operations (create, add text, extract)
-│   │   └── pdf_validation.rs # PDF validation system
-│   ├── tests/             # Integration tests
-│   └── examples/          # Example programs
-├── docs/                  # Documentation
-│   ├── SPEC.md           # Product specification
-│   ├── IMPLEMENTATION_PLAN.md # Implementation guide
-│   ├── PHASE0_COMPLETE.md # Phase 0 report
-│   └── PDF_VALIDATION.md  # Validation system docs
-└── README.md              # This file
-```
-
-
 ## Testing
 
 ### Frontend Tests
@@ -80,7 +51,7 @@ npm run test:unit          # Run unit tests
 npm run test:integration   # Run all integration tests
 ```
 
-### Backend Tests (37 tests)
+### Backend Tests
 
 ```bash
 cd src-tauri
@@ -104,7 +75,7 @@ cd src-tauri
 cargo run --example generate_test_pdfs
 ```
 
-This creates 6 example PDFs in `src-tauri/` demonstrating the addition of text and image annotations.
+This creates example PDFs in `src-tauri/` demonstrating the addition of text and image annotations.
 
 ## Documentation
 

@@ -271,6 +271,15 @@ fn validate_font_family(font_family: &str) -> Result<(), Box<dyn std::error::Err
     }
 }
 
+/// Encodes a UTF-8 string to WinAnsiEncoding (Windows-1252) bytes.
+/// Characters with codepoints <= 0xFF map directly; others become '?'.
+fn encode_text_to_winansi(text: &str) -> Vec<u8> {
+    text.chars().map(|c| {
+        let cp = c as u32;
+        if cp <= 0xFF { cp as u8 } else { b'?' }
+    }).collect()
+}
+
 /// Ensures that a font is present in the page's Resources dictionary
 fn ensure_font_in_resources(
     doc: &mut Document,
@@ -318,6 +327,7 @@ fn ensure_font_in_resources(
                         font_obj.set("Type", Object::Name(b"Font".to_vec()));
                         font_obj.set("Subtype", Object::Name(b"Type1".to_vec()));
                         font_obj.set("BaseFont", Object::Name(font_family.as_bytes().to_vec()));
+                        font_obj.set("Encoding", Object::Name(b"WinAnsiEncoding".to_vec()));
                         font_dict.set(font_family, font_obj);
                     }
 
@@ -371,6 +381,7 @@ fn ensure_font_in_resources(
                         font_obj.set("Type", Object::Name(b"Font".to_vec()));
                         font_obj.set("Subtype", Object::Name(b"Type1".to_vec()));
                         font_obj.set("BaseFont", Object::Name(font_family.as_bytes().to_vec()));
+                        font_obj.set("Encoding", Object::Name(b"WinAnsiEncoding".to_vec()));
                         font_dict.set(font_family, font_obj);
                     }
 
@@ -406,6 +417,7 @@ fn ensure_font_in_resources(
         font_obj.set("Type", Object::Name(b"Font".to_vec()));
         font_obj.set("Subtype", Object::Name(b"Type1".to_vec()));
         font_obj.set("BaseFont", Object::Name(font_family.as_bytes().to_vec()));
+        font_obj.set("Encoding", Object::Name(b"WinAnsiEncoding".to_vec()));
         font_dict.set(font_family, font_obj);
     }
 
@@ -720,7 +732,7 @@ pub fn add_text_with_style(
 
     // Show text
     content.operations.push(Operation::new("Tj", vec![
-        Object::String(text.as_bytes().to_vec(), ::lopdf::StringFormat::Literal)
+        Object::String(encode_text_to_winansi(text), ::lopdf::StringFormat::Literal)
     ]));
 
     // End text
@@ -957,7 +969,7 @@ fn apply_annotations_to_page(
 
                 // Show text
                 content.operations.push(Operation::new("Tj", vec![
-                    Object::String(text_ann.content.as_bytes().to_vec(), ::lopdf::StringFormat::Literal)
+                    Object::String(encode_text_to_winansi(&text_ann.content), ::lopdf::StringFormat::Literal)
                 ]));
 
                 // End text

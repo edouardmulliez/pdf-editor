@@ -71,18 +71,11 @@ cargo run --example generate_test_pdfs
 - Two main modules: `pdf_ops` and `pdf_validation`
 - Uses `printpdf` for PDF creation and `lopdf` for PDF manipulation
 
-
 See [E2E_TESTING_IMPLEMENTATION.md](./docs/E2E_TESTING_IMPLEMENTATION.md) and [INTEGRATION_TESTS_FIXED.md](./docs/INTEGRATION_TESTS_FIXED.md) for detailed documentation.
 
 ## Documentation Guidelines
 
 **New documentation should be placed in the `docs/` folder**, not in the project root. The root should only contain essential files like README.md and CLAUDE.md.
-
-When creating new documentation:
-- Implementation reports → `docs/`
-- Technical specifications → `docs/`
-- Phase completion reports → `docs/`
-- API documentation → `docs/`
 
 ## Development Workflow
 
