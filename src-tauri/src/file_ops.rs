@@ -1,4 +1,5 @@
 use std::fs;
+use std::io::Cursor;
 use std::path::PathBuf;
 
 #[derive(Debug, serde::Serialize)]
@@ -39,6 +40,16 @@ pub fn read_pdf_file(path: PathBuf) -> Result<PdfFileData, String> {
     // Verify PDF magic bytes
     if data.len() < 4 || &data[0..4] != b"%PDF" {
         return Err("File is not a valid PDF".to_string());
+    }
+
+    // Check for PDF encryption
+    let cursor = Cursor::new(&data);
+    if let Ok(doc) = lopdf::Document::load_from(cursor) {
+        if doc.is_encrypted() {
+            return Err(
+                "This PDF is encrypted. Please decrypt it before editing.".to_string()
+            );
+        }
     }
 
     Ok(PdfFileData {

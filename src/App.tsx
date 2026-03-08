@@ -45,7 +45,7 @@ function App() {
 
       console.log(`PDF loaded: ${loadedPdf.fileName} (${loadedPdf.numPages} pages)`);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to open PDF';
+      const message = error instanceof Error ? error.message : (typeof error === 'string' ? error : 'Failed to open PDF');
       setError(message);
       console.error('Error opening PDF:', error);
     }

@@ -1067,8 +1067,7 @@ pub fn apply_annotations_to_file(
     output_path: &str,
     annotations: &[Annotation],
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut doc = Document::load(input_path)
-        .map_err(|e| format!("Failed to load PDF: {}", e))?;
+    let mut doc = Document::load(input_path).map_err(|e| format!("Failed to load PDF: {}", e))?;
 
     apply_annotations(&mut doc, annotations)?;
 
@@ -1092,8 +1091,7 @@ pub fn create_annotations_only_pdf(
     annotations: &[Annotation],
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Load original to extract page dimensions
-    let original_doc = Document::load(input_path)
-        .map_err(|e| format!("Failed to load original PDF: {}", e))?;
+    let original_doc = Document::load(input_path).map_err(|e| format!("Failed to load PDF: {}", e))?;
 
     let original_pages: Vec<_> = original_doc.page_iter().collect();
 
