@@ -469,7 +469,7 @@ select a text to move it.
 - ✅ when in text edit, do not interpret backspace as "delete the annotation".
 - ✅ check exports with accents
 - ✅ ensure an image can be inserted at the top of the document
-- check with PDFs from Ksyusha. 
+- ✅ handle PDFs where content is a ref to an array
 
 ---
 

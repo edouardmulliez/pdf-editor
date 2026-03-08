@@ -670,6 +670,35 @@ fn add_image_to_page_resources(
 // PDF Operations
 // ============================================================================
 
+/// Resolves a page's /Contents into a flat array of stream references.
+///
+/// PDF spec allows /Contents to be:
+/// - A direct reference to a single stream
+/// - A direct reference to an array of stream references
+/// - A direct array of stream references
+///
+/// Some PDF generators (e.g. pypdf's clone_reader_document_root) produce
+/// /Contents as an indirect reference to an array. lopdf returns this as
+/// Object::Reference, but naively wrapping it in a new array would create
+/// an invalid structure (array element pointing to an array, not a stream).
+/// This helper dereferences one level to produce a flat, valid contents array.
+fn resolve_contents_to_array(
+    doc: &Document,
+    existing_contents: &Object,
+) -> Vec<Object> {
+    match existing_contents {
+        Object::Reference(ref_id) => {
+            // Dereference to see whether it points to a stream or an array
+            match doc.get_object(*ref_id) {
+                Ok(Object::Array(arr)) => arr.clone(),
+                _ => vec![Object::Reference(*ref_id)],
+            }
+        }
+        Object::Array(arr) => arr.clone(),
+        _ => vec![],
+    }
+}
+
 /// Adds text to a PDF with custom font, size, and color
 ///
 /// # Arguments
@@ -758,19 +787,8 @@ pub fn add_text_with_style(
     let existing_contents = page_dict.get(b"Contents")
         .map_err(|e| format!("No existing Contents: {}", e))?;
 
-    let contents_array = match existing_contents {
-        Object::Reference(ref_id) => {
-            vec![Object::Reference(*ref_id), Object::Reference(new_content_id)]
-        }
-        Object::Array(arr) => {
-            let mut new_arr = arr.clone();
-            new_arr.push(Object::Reference(new_content_id));
-            new_arr
-        }
-        _ => {
-            vec![Object::Reference(new_content_id)]
-        }
-    };
+    let mut contents_array = resolve_contents_to_array(doc, existing_contents);
+    contents_array.push(Object::Reference(new_content_id));
 
     // Update page with content array
     let page_dict = doc.get_object_mut(page_id)?
@@ -865,19 +883,8 @@ pub fn add_image_to_pdf(
     let existing_contents = page_dict.get(b"Contents")
         .map_err(|e| format!("No existing Contents: {}", e))?;
 
-    let contents_array = match existing_contents {
-        Object::Reference(ref_id) => {
-            vec![Object::Reference(*ref_id), Object::Reference(new_content_id)]
-        }
-        Object::Array(arr) => {
-            let mut new_arr = arr.clone();
-            new_arr.push(Object::Reference(new_content_id));
-            new_arr
-        }
-        _ => {
-            vec![Object::Reference(new_content_id)]
-        }
-    };
+    let mut contents_array = resolve_contents_to_array(doc, existing_contents);
+    contents_array.push(Object::Reference(new_content_id));
 
     // Update page with content array
     let page_dict = doc.get_object_mut(page_id)?
@@ -1036,19 +1043,8 @@ fn apply_annotations_to_page(
     let existing_contents = page_dict.get(b"Contents")
         .map_err(|e| format!("No existing Contents: {}", e))?;
 
-    let contents_array = match existing_contents {
-        Object::Reference(ref_id) => {
-            vec![Object::Reference(*ref_id), Object::Reference(new_content_id)]
-        }
-        Object::Array(arr) => {
-            let mut new_arr = arr.clone();
-            new_arr.push(Object::Reference(new_content_id));
-            new_arr
-        }
-        _ => {
-            vec![Object::Reference(new_content_id)]
-        }
-    };
+    let mut contents_array = resolve_contents_to_array(doc, existing_contents);
+    contents_array.push(Object::Reference(new_content_id));
 
     // Update page with content array
     let page_dict = doc.get_object_mut(page_id)?
