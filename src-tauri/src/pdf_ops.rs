@@ -489,7 +489,7 @@ fn create_png_xobject(
             .collect();
 
         // Compress alpha data
-        let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
+        let mut encoder = ZlibEncoder::new(Vec::new(), Compression::fast());
         encoder.write_all(&alpha_data)?;
         let compressed_alpha = encoder.finish()?;
 
@@ -515,7 +515,7 @@ fn create_png_xobject(
     let raw_data = rgb_img.into_raw();
 
     // Compress RGB data with zlib
-    let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
+    let mut encoder = ZlibEncoder::new(Vec::new(), Compression::fast());
     encoder.write_all(&raw_data)?;
     let compressed_data = encoder.finish()?;
 
@@ -984,10 +984,12 @@ fn apply_annotations_to_page(
             }
             AnnotationType::Image(image_ann) => {
                 // Create image XObject
+                let t_img = std::time::Instant::now();
                 let xobject_id = match image_ann.format {
                     ImageFormat::Jpeg => create_jpeg_xobject(doc, &image_ann.image_data)?,
                     ImageFormat::Png => create_png_xobject(doc, &image_ann.image_data)?,
                 };
+                println!("[TIMING] XObject creation ({:?}, {} bytes): {:?}", image_ann.format, image_ann.image_data.len(), t_img.elapsed());
 
                 // Generate unique image name
                 let image_name = format!("Im{}", xobject_id.0);
@@ -1028,8 +1030,10 @@ fn apply_annotations_to_page(
         .map_err(|e| format!("Failed to encode content: {}", e))?;
 
     let mut new_stream = Stream::new(Dictionary::new(), encoded_content);
+    let t_compress = std::time::Instant::now();
     new_stream.compress()
         .map_err(|e| format!("Failed to compress stream: {}", e))?;
+    println!("[TIMING] content stream compress: {:?}", t_compress.elapsed());
 
     // Add stream to document
     let new_content_id = doc.add_object(new_stream);
@@ -1069,10 +1073,14 @@ pub fn apply_annotations_to_file(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut doc = Document::load(input_path).map_err(|e| format!("Failed to load PDF: {}", e))?;
 
+    let t_annotate = std::time::Instant::now();
     apply_annotations(&mut doc, annotations)?;
+    println!("[TIMING] apply_annotations: {:?}", t_annotate.elapsed());
 
+    let t_save = std::time::Instant::now();
     doc.save(output_path)
         .map_err(|e| format!("Failed to save PDF: {}", e))?;
+    println!("[TIMING] doc.save: {:?}", t_save.elapsed());
 
     println!("✅ Applied {} annotations to PDF: {} -> {}", annotations.len(), input_path, output_path);
     Ok(())

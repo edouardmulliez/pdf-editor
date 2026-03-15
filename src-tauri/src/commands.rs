@@ -60,13 +60,17 @@ pub async fn export_pdf(
     output_path: String,
     annotations_json: String,
 ) -> Result<String, String> {
+    let t0 = std::time::Instant::now();
     // Deserialize JSON to Vec<Annotation>
     let annotations: Vec<Annotation> = serde_json::from_str(&annotations_json)
         .map_err(|e| format!("Invalid annotation data: {}", e))?;
+    println!("[TIMING] JSON deserialization: {:?}", t0.elapsed());
 
+    let t1 = std::time::Instant::now();
     // Apply annotations using existing Phase 0 function
     apply_annotations_to_file(&input_path, &output_path, &annotations)
         .map_err(|e| format!("Export failed: {}", e))?;
+    println!("[TIMING] apply_annotations_to_file: {:?}", t1.elapsed());
 
     // Return success message
     Ok(format!("Successfully exported PDF to {}", output_path))

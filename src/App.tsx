@@ -8,7 +8,7 @@ import { StatusBar } from './components/UI/StatusBar';
 import { usePDFStore } from './stores/usePDFStore';
 import { useAnnotationStore } from './stores/useAnnotationStore';
 import { loadPdfFromBytes } from './utils/pdf-loader';
-import { transformAnnotationsForRust } from './utils/annotation-transformer';
+import { transformAnnotationsForRust, resizeImageForPdfExport } from './utils/annotation-transformer';
 
 function App() {
   const { document: pdfDoc, setDocument, setLoading, setError } = usePDFStore();
@@ -79,16 +79,35 @@ function App() {
       // 4. Show loading state
       setLoading(true);
 
-      // 5. Transform annotations to Rust format
-      const rustAnnotations = transformAnnotationsForRust(annotations);
+      // 5. Resize image annotations to display size, then transform
+      const t_resize = performance.now();
+      const preparedAnnotations = await Promise.all(
+        annotations.map(async (ann): Promise<typeof ann> => {
+          if (ann.type !== 'image') return ann;
+          const resizedData = await resizeImageForPdfExport(
+            ann.imageData, ann.imageFormat, ann.size.width, ann.size.height
+          );
+          return { ...ann, imageData: resizedData };
+        })
+      );
+      console.log(`[TIMING] image resize: ${(performance.now() - t_resize).toFixed(1)}ms`);
+
+      const t0 = performance.now();
+      const rustAnnotations = transformAnnotationsForRust(preparedAnnotations);
+      console.log(`[TIMING] transformAnnotationsForRust: ${(performance.now() - t0).toFixed(1)}ms`);
+
+      const t1 = performance.now();
       const annotationsJson = JSON.stringify(rustAnnotations);
+      console.log(`[TIMING] JSON.stringify (${annotationsJson.length} bytes): ${(performance.now() - t1).toFixed(1)}ms`);
 
       // 6. Call Tauri export command
+      const t2 = performance.now();
       await invoke<string>('export_pdf', {
         inputPath: filePath,
         outputPath: savePath,
         annotationsJson,
       });
+      console.log(`[TIMING] IPC invoke total: ${(performance.now() - t2).toFixed(1)}ms`);
 
       // 7. Show success message
       const filename = savePath.split('/').pop() || 'file.pdf';

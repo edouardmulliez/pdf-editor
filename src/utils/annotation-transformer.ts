@@ -153,6 +153,46 @@ export function mapFontToStandard14(
 }
 
 /**
+ * Resizes an image data URL to the annotation's PDF display dimensions × 2 (144 DPI).
+ * Returns the original data URL unchanged if the image is already smaller than the target.
+ * This prevents sending large full-resolution images over IPC when the annotation
+ * only displays them at a small size in the PDF.
+ */
+export async function resizeImageForPdfExport(
+  imageData: string,
+  format: 'jpeg' | 'png',
+  displayWidthPts: number,
+  displayHeightPts: number,
+): Promise<string> {
+  const targetW = Math.round(displayWidthPts * 2);
+  const targetH = Math.round(displayHeightPts * 2);
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      if (img.naturalWidth <= targetW && img.naturalHeight <= targetH) {
+        resolve(imageData);
+        return;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = targetW;
+      canvas.height = targetH;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(imageData);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, targetW, targetH);
+      const mimeType = format === 'jpeg' ? 'image/jpeg' : 'image/png';
+      const quality = format === 'jpeg' ? 0.92 : undefined;
+      resolve(canvas.toDataURL(mimeType, quality));
+    };
+    img.onerror = () => reject(new Error('Failed to load image for resize'));
+    img.src = imageData;
+  });
+}
+
+/**
  * Strips data URL prefix from base64 image data
  * @param dataUrl - Image data URL (e.g., "data:image/jpeg;base64,ABC...")
  * @returns Base64 string without prefix (e.g., "ABC...")
