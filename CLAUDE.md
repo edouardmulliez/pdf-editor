@@ -19,6 +19,9 @@ npm run tauri dev
 # Build for production
 npm run tauri build
 
+# Run dev server with release-mode Rust backend
+npm run tauri dev -- --release
+
 # Frontend only (without Tauri)
 npm run dev
 npm run build

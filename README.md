@@ -37,6 +37,9 @@ npm install
 # Run in development mode
 npm run tauri dev
 
+# Run dev server with release-mode Rust backend
+npm run tauri dev -- --release
+
 # Build for production
 npm run tauri build
 ```
