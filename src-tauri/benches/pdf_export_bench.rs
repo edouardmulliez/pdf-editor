@@ -18,9 +18,7 @@ fn bench_pdf_export(c: &mut Criterion) {
         .unwrap()
         .to_string();
 
-    // fox.png is 5460×3072 px.
-    // Resize target = display_pts * 2. To avoid resize: display_pts >= image_px / 2.
-    // Scenarios: (label, display_width_pts, display_height_pts)
+    // fox.png is 5460×3072 px. Scenarios: (label, display_width_pts, display_height_pts)
     let scenarios: &[(&str, f32, f32)] = &[
         ("full_5460x3072", 2730.0, 1536.0),   // baseline: no resize triggered
         ("half_2730x1536", 1365.0, 768.0),

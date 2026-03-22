@@ -470,7 +470,7 @@ select a text to move it.
 - ✅ check exports with accents
 - ✅ ensure an image can be inserted at the top of the document
 - ✅ handle PDFs where content is a ref to an array
-- make the PDF export quick, even when there are image annotations
+- ✅ make the PDF export quick, even when there are image annotations => just need to use release mode
 
 ---
 

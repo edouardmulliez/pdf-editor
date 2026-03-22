@@ -458,25 +458,12 @@ fn create_jpeg_xobject(
 fn create_png_xobject(
     doc: &mut Document,
     png_data: &[u8],
-    display_width_pts: f32,
-    display_height_pts: f32,
 ) -> Result<::lopdf::ObjectId, Box<dyn std::error::Error>> {
     // Decode PNG
     let img = ImageReader::new(std::io::Cursor::new(png_data))
         .with_guessed_format()?
         .decode()?;
 
-    let width = img.width();
-    let height = img.height();
-
-    // Downscale to 2× display dimensions (144 DPI) if larger — never upscale
-    let target_w = (display_width_pts * 2.0).round() as u32;
-    let target_h = (display_height_pts * 2.0).round() as u32;
-    let img = if width > target_w || height > target_h {
-        img.resize(target_w, target_h, ::image::imageops::FilterType::Lanczos3)
-    } else {
-        img
-    };
     let width = img.width();
     let height = img.height();
 
@@ -842,7 +829,7 @@ pub fn add_image_to_pdf(
     // Create image XObject based on format
     let xobject_id = match format {
         ImageFormat::Jpeg => create_jpeg_xobject(doc, image_data)?,
-        ImageFormat::Png => create_png_xobject(doc, image_data, width, height)?,
+        ImageFormat::Png => create_png_xobject(doc, image_data)?,
     };
 
     // Generate unique image name
@@ -1000,7 +987,7 @@ fn apply_annotations_to_page(
                 let t_img = std::time::Instant::now();
                 let xobject_id = match image_ann.format {
                     ImageFormat::Jpeg => create_jpeg_xobject(doc, &image_ann.image_data)?,
-                    ImageFormat::Png => create_png_xobject(doc, &image_ann.image_data, image_ann.width, image_ann.height)?,
+                    ImageFormat::Png => create_png_xobject(doc, &image_ann.image_data)?,
                 };
                 println!("[TIMING] XObject creation ({:?}, {} bytes): {:?}", image_ann.format, image_ann.image_data.len(), t_img.elapsed());
 
